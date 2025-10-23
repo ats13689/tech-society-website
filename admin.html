@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科技學會管理後台 | Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4a49b8',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #5D5CDE;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-[#181818] text-gray-900 dark:text-gray-100">
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg max-w-md w-full">
+            <div class="text-center mb-8">
+                <svg class="w-16 h-16 mx-auto mb-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <h1 class="text-2xl font-bold">科技學會管理後台</h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-2">請登入以繼續</p>
+            </div>
+
+            <form id="loginForm" onsubmit="return handleLogin(event)" class="space-y-4">
+                <div>
+                    <label for="loginEmail" class="block text-sm font-semibold mb-2">電子郵件</label>
+                    <input type="email" id="loginEmail" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="your@email.com" required>
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-semibold mb-2">密碼</label>
+                    <input type="password" id="loginPassword" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="請輸入密碼" required>
+                </div>
+                <button type="submit" id="loginBtn" class="w-full px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-semibold transition-colors">
+                    登入
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-40">
+            <div class="px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    <div>
+                        <h1 class="text-xl font-bold">科技學會管理後台</h1>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">歡迎回來，<span id="currentUser"></span></p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary transition-colors">返回前台</a>
+                    <button id="logoutBtn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors">
+                        登出
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white dark:bg-gray-800 min-h-screen shadow-sm">
+                <nav class="p-4 space-y-2">
+                    <button data-section="activities" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>活動管理</span>
+                    </button>
+                    <button data-section="projects" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <span>專案管理</span>
+                    </button>
+                    <button data-section="contacts" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>聯絡訊息</span>
+                    </button>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-8">
+                <!-- Activities Section -->
+                <div id="activitiesSection" class="section">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold">活動管理</h2>
+                            <button id="addActivityBtn" class="px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-semibold transition-colors">
+                                + 新增活動
+                            </button>
+                        </div>
+
+                        <!-- Activities List -->
+                        <div id="activitiesLoading" class="flex justify-center py-12">
+                            <div class="loading-spinner"></div>
+                        </div>
+                        <div id="activitiesList" class="space-y-4 hidden"></div>
+                        <div id="activitiesEmptyState" class="text-center py-12 hidden">
+                            <p class="text-gray-500 dark:text-gray-400">暫無活動資料</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Section -->
+                <div id="projectsSection" class="section hidden">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold">專案管理</h2>
+                            <button id="addProjectBtn" class="px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-semibold transition-colors">
+                                + 新增專案
+                            </button>
+                        </div>
+
+                        <!-- Projects List -->
+                        <div id="projectsLoading" class="flex justify-center py-12">
+                            <div class="loading-spinner"></div>
+                        </div>
+                        <div id="projectsList" class="space-y-4 hidden"></div>
+                        <div id="projectsEmptyState" class="text-center py-12 hidden">
+                            <p class="text-gray-500 dark:text-gray-400">暫無專案資料</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contacts Section -->
+                <div id="contactsSection" class="section hidden">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold">聯絡訊息</h2>
+                            <div class="flex space-x-2">
+                                <button onclick="filterContacts('all')" class="filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm font-semibold transition-colors">
+                                    全部
+                                </button>
+                                <button onclick="filterContacts('unread')" class="filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm font-semibold transition-colors">
+                                    未讀
+                                </button>
+                                <button onclick="filterContacts('replied')" class="filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm font-semibold transition-colors">
+                                    已回覆
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Contacts List -->
+                        <div id="contactsLoading" class="flex justify-center py-12">
+                            <div class="loading-spinner"></div>
+                        </div>
+                        <div id="contactsList" class="space-y-4 hidden"></div>
+                        <div id="contactsEmptyState" class="text-center py-12 hidden">
+                            <p class="text-gray-500 dark:text-gray-400">暫無聯絡訊息</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Activity Modal -->
+    <div id="activityModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold" id="activityModalTitle">新增活動</h3>
+                <button class="closeModal text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="activityForm" class="space-y-4">
+                <input type="hidden" id="activityId">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">活動標題</label>
+                    <input type="text" id="activityTitle" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">活動日期</label>
+                    <input type="text" id="activityDate" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none" placeholder="例如: 2024年3月15日" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">活動描述</label>
+                    <textarea id="activityDescription" rows="4" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none resize-none" required></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">活動連結 (選填)</label>
+                    <input type="url" id="activityLink" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none" placeholder="https://example.com">
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" class="closeModal px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-semibold transition-colors">取消</button>
+                    <button type="submit" class="px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-semibold transition-colors">儲存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div id="projectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold" id="projectModalTitle">新增專案</h3>
+                <button class="closeModal text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="projectForm" class="space-y-4">
+                <input type="hidden" id="projectId">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">專案標題</label>
+                    <input type="text" id="projectTitle" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">專案狀態</label>
+                    <select id="projectStatus" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none">
+                        <option value="進行中">進行中</option>
+                        <option value="已完成">已完成</option>
+                        <option value="計劃中">計劃中</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">專案描述</label>
+                    <textarea id="projectDescription" rows="4" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none resize-none" required></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">使用技術 (用逗號分隔)</label>
+                    <input type="text" id="projectTechnologies" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none" placeholder="例如: React, Node.js, MongoDB">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">參與成員數</label>
+                    <input type="number" id="projectMembers" min="0" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">專案連結 (選填)</label>
+                    <input type="url" id="projectLink" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none" placeholder="https://github.com/...">
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" class="closeModal px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-semibold transition-colors">取消</button>
+                    <button type="submit" class="px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-semibold transition-colors">儲存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reply Modal -->
+    <div id="replyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">回覆訊息</h3>
+                <button onclick="closeReplyModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-4 mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">發件人</p>
+                    <p class="font-semibold" id="replyEmail"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">主旨</p>
+                    <p class="font-semibold" id="replySubject"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">內容</p>
+                    <p id="replyOriginalMessage" class="whitespace-pre-wrap"></p>
+                </div>
+            </div>
+
+            <form id="replyForm" onsubmit="handleReply(event)" class="space-y-4">
+                <input type="hidden" id="replyContactId">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">回覆內容</label>
+                    <textarea id="replyContent" rows="6" class="w-full px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary outline-none resize-none" required placeholder="請輸入回覆內容..."></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeReplyModal()" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-semibold transition-colors">取消</button>
+                    <button type="submit" class="px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-semibold transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>發送回覆
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase 配置（與 index.html 保持一致）
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCXmBJkesxRi3ufdCRucd5vcmg-Ls_3Ks",
+            authDomain: "tech-society-566dc.firebaseapp.com",
+            projectId: "tech-society-566dc",
+            storageBucket: "tech-society-566dc.firebasestorage.app",
+            messagingSenderId: "1098408063649",
+            appId: "1:1098408063649:web:ec07e23e03c43f92c7f6e0",
+            measurementId: "G-05127H92FQ"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 存储到 window 对象以供其他脚本使用
+        window.firebaseAuth = auth;
+        window.firebaseDB = db;
+        window.firestoreModules = { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy };
+        window.authModules = { signInWithEmailAndPassword, signOut, onAuthStateChanged };
+
+        // 🔥 重要：在 Firebase SDK 加載完成後立即初始化
+        console.log('Firebase SDK loaded successfully!');
+        window.firebaseReady = true;
+        if (window.initAuth) {
+            window.initAuth();
+        }
+    </script>
+
+    <script>
+        console.log('=== ADMIN PAGE LOADED ===');
+
+        // 簡單的 alert 函數（不依賴其他代碼）
+        function showAlertSimple(message) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
+                    <div class="flex justify-end">
+                        <button class="px-6 py-2 bg-primary text-white hover:bg-primary-dark rounded-lg transition-colors" onclick="this.closest('.fixed').remove()">確定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        // 🔥 直接定義登入函數（inline 方式確保一定能執行）
+        window.handleLogin = async function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log('handleLogin called!');
+
+            const emailInput = document.getElementById('loginEmail');
+            const passwordInput = document.getElementById('loginPassword');
+            const loginBtn = document.getElementById('loginBtn');
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            console.log('Email:', email);
+            console.log('Password length:', password.length);
+
+            if (!email || !password) {
+                showAlertSimple('請輸入電郵和密碼');
+                loginBtn.textContent = '登入';
+                loginBtn.disabled = false;
+                return false;
+            }
+
+            loginBtn.textContent = '登入中...';
+            loginBtn.disabled = true;
+
+            try {
+                console.log('Waiting for Firebase...');
+                // 等待 Firebase 加載
+                let retries = 0;
+                while (!window.authModules && retries < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    retries++;
+                }
+
+                if (!window.authModules) {
+                    throw new Error('Firebase 加載超時');
+                }
+
+                console.log('Calling signInWithEmailAndPassword...');
+                const userCredential = await window.authModules.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+                console.log('Login successful:', userCredential.user.email);
+
+                // onAuthStateChanged will handle UI updates
+            } catch (error) {
+                console.error('Login error:', error);
+                let errorMessage = '登入失敗';
+
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = '帳號不存在';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = '密碼錯誤';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = '郵箱格式不正確';
+                        break;
+                    case 'auth/invalid-credential':
+                        errorMessage = '帳號或密碼錯誤';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = '登入嘗試次數過多，請稍後再試';
+                        break;
+                    default:
+                        errorMessage = `登入失敗：${error.message}`;
+                }
+
+                showAlertSimple(errorMessage);
+                loginBtn.textContent = '登入';
+                loginBtn.disabled = false;
+            }
+
+            return false; // 防止表單提交
+        };
+
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+
+        // User Management
+        let currentUser = null;
+        const SUPER_ADMIN_UID = 'vdNBS7qPdRV9qpV7CLgXwBflCf23';
+
+        // 等待 Firebase SDK 加載完成後初始化認證監聽器
+        window.initAuth = function() {
+            if (!window.authModules || !window.firebaseAuth) {
+                console.error('Firebase not ready yet, retrying...');
+                setTimeout(window.initAuth, 100);
+                return;
+            }
+
+            console.log('Initializing auth state observer...');
+
+            // Authentication State Observer
+            window.authModules.onAuthStateChanged(window.firebaseAuth, async (user) => {
+            if (user) {
+                // Check user role in Firestore
+                console.log('User logged in:', user.email, 'UID:', user.uid);
+                try {
+                    const { doc, getDoc } = window.firestoreModules;
+                    const userDoc = await getDoc(doc(window.firebaseDB, 'users', user.uid));
+
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        console.log('User data:', userData);
+                        console.log('User role:', userData.role);
+                        console.log('User status:', userData.status);
+                        console.log('Super Admin UID:', SUPER_ADMIN_UID);
+                        console.log('Current UID:', user.uid);
+                        console.log('Is admin?', userData.role === 'admin');
+                        console.log('Is super admin?', user.uid === SUPER_ADMIN_UID);
+
+                        // Check if user is admin or super admin
+                        if (userData.role === 'admin' || user.uid === SUPER_ADMIN_UID) {
+                            if (userData.status !== 'approved') {
+                                console.log('Status not approved:', userData.status);
+                                showAlert('您的帳號尚未被批准訪問管理後台。狀態：' + userData.status);
+                                await window.authModules.signOut(window.firebaseAuth);
+                                return;
+                            }
+
+                            console.log('Access granted! Loading dashboard...');
+                            currentUser = {
+                                uid: user.uid,
+                                email: user.email,
+                                name: userData.name || user.email,
+                                role: userData.role
+                            };
+
+                            document.getElementById('currentUser').textContent = currentUser.name;
+                            document.getElementById('loginScreen').classList.add('hidden');
+                            document.getElementById('adminDashboard').classList.remove('hidden');
+                            loadActivities();
+                        } else {
+                            console.log('Role check failed. Role:', userData.role);
+                            showAlert('您沒有權限訪問管理後台。您的角色：' + (userData.role || '無'));
+                            await window.authModules.signOut(window.firebaseAuth);
+                        }
+                    } else {
+                        console.log('User document does not exist for UID:', user.uid);
+                        showAlert('用戶資料不存在（UID: ' + user.uid + '）');
+                        await window.authModules.signOut(window.firebaseAuth);
+                    }
+                } catch (error) {
+                    console.error('Error checking user role:', error);
+                    showAlert('驗證用戶權限時發生錯誤：' + error.message);
+                    await window.authModules.signOut(window.firebaseAuth);
+                }
+            } else {
+                // User is signed out
+                console.log('User signed out');
+                currentUser = null;
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('adminDashboard').classList.add('hidden');
+            }
+        });
+        };
+
+        // 如果 Firebase 已經加載，立即初始化
+        if (window.firebaseReady) {
+            window.initAuth();
+        }
+
+        // Login Handling - 等待 DOM 完全載入
+        function initLoginHandler() {
+            const loginForm = document.getElementById('loginForm');
+            if (!loginForm) {
+                console.error('Login form not found');
+                setTimeout(initLoginHandler, 100);
+                return;
+            }
+
+            console.log('Login form found, attaching event listener');
+
+            // 移除舊的事件監聽器（如果有）
+            const newForm = loginForm.cloneNode(true);
+            loginForm.parentNode.replaceChild(newForm, loginForm);
+
+            newForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('=== Login form submitted ===');
+
+                const email = document.getElementById('loginEmail').value.trim();
+                const password = document.getElementById('loginPassword').value;
+
+                console.log('Email:', email);
+                console.log('Password length:', password.length);
+
+                if (!email || !password) {
+                    showAlert('請輸入電郵和密碼');
+                    return;
+                }
+
+                // 顯示登入中狀態
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = '登入中...';
+                submitBtn.disabled = true;
+
+                try {
+                    console.log('Calling Firebase signIn...');
+                    const userCredential = await window.authModules.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+                    console.log('Login successful:', userCredential.user.email);
+                    // onAuthStateChanged will handle the rest
+                } catch (error) {
+                    console.error('Login error:', error);
+                    let errorMessage = '登入失敗';
+
+                    switch (error.code) {
+                        case 'auth/user-not-found':
+                            errorMessage = '帳號不存在';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMessage = '密碼錯誤';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage = '郵箱格式不正確';
+                            break;
+                        case 'auth/invalid-credential':
+                            errorMessage = '帳號或密碼錯誤';
+                            break;
+                        case 'auth/too-many-requests':
+                            errorMessage = '登入嘗試次數過多，請稍後再試';
+                            break;
+                        default:
+                            errorMessage = `登入失敗：${error.message}`;
+                    }
+
+                    showAlert(errorMessage);
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+
+            console.log('Login handler initialized successfully');
+        }
+
+        // 初始化所有 UI 事件監聽器
+        function initUIHandlers() {
+            console.log('Initializing UI handlers...');
+
+            // Logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    try {
+                        await window.authModules.signOut(window.firebaseAuth);
+                        document.getElementById('loginForm').reset();
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        showAlert('登出時發生錯誤');
+                    }
+                });
+            }
+
+            // Navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const section = btn.dataset.section;
+
+                    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+                    document.getElementById(section + 'Section').classList.remove('hidden');
+
+                    document.querySelectorAll('.nav-btn').forEach(b => {
+                        b.classList.remove('bg-primary', 'text-white');
+                    });
+                    btn.classList.add('bg-primary', 'text-white');
+
+                    if (section === 'activities') {
+                        loadActivities();
+                    } else if (section === 'projects') {
+                        loadProjects();
+                    } else if (section === 'contacts') {
+                        loadContacts();
+                    }
+                });
+            });
+
+            // Set default active section
+            const firstNavBtn = document.querySelector('.nav-btn');
+            if (firstNavBtn) {
+                firstNavBtn.click();
+            }
+
+            // Modal Handling
+            document.querySelectorAll('.closeModal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('activityModal').classList.add('hidden');
+                    document.getElementById('projectModal').classList.add('hidden');
+                });
+            });
+        }
+
+        // 當 DOM 載入完成後初始化所有處理器
+        function initAllHandlers() {
+            initLoginHandler();
+            initUIHandlers();
+            initActivityHandlers();
+            initProjectHandlers();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAllHandlers);
+        } else {
+            initAllHandlers();
+        }
+
+        // Activities Management
+        function initActivityHandlers() {
+            const addActivityBtn = document.getElementById('addActivityBtn');
+            if (addActivityBtn) {
+                addActivityBtn.addEventListener('click', () => {
+                    document.getElementById('activityModalTitle').textContent = '新增活動';
+                    document.getElementById('activityForm').reset();
+                    document.getElementById('activityId').value = '';
+                    document.getElementById('activityModal').classList.remove('hidden');
+                });
+            }
+
+            const activityForm = document.getElementById('activityForm');
+            if (activityForm) {
+                activityForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const activityData = {
+                        title: document.getElementById('activityTitle').value,
+                        date: document.getElementById('activityDate').value,
+                        description: document.getElementById('activityDescription').value,
+                        link: document.getElementById('activityLink').value || ''
+                    };
+
+                    try {
+                        const activityId = document.getElementById('activityId').value;
+
+                        if (activityId) {
+                            // Update existing activity
+                            const { doc, updateDoc } = window.firestoreModules;
+                            await updateDoc(doc(window.firebaseDB, 'activities', activityId), activityData);
+                            showAlert('活動已更新！');
+                        } else {
+                            // Add new activity
+                            const { collection, addDoc } = window.firestoreModules;
+                            await addDoc(collection(window.firebaseDB, 'activities'), activityData);
+                            showAlert('活動已新增！');
+                        }
+
+                        document.getElementById('activityModal').classList.add('hidden');
+                        loadActivities();
+                    } catch (error) {
+                        console.error('Error saving activity:', error);
+                        showAlert('儲存活動時發生錯誤');
+                    }
+                });
+            }
+        }
+
+        async function loadActivities() {
+            const loadingEl = document.getElementById('activitiesLoading');
+            const listEl = document.getElementById('activitiesList');
+            const emptyEl = document.getElementById('activitiesEmptyState');
+
+            loadingEl.classList.remove('hidden');
+            listEl.classList.add('hidden');
+            emptyEl.classList.add('hidden');
+            listEl.innerHTML = '';
+
+            try {
+                const { collection, query, orderBy, getDocs } = window.firestoreModules;
+                const q = query(collection(window.firebaseDB, 'activities'), orderBy('date', 'desc'));
+                const querySnapshot = await getDocs(q);
+
+                loadingEl.classList.add('hidden');
+
+                if (querySnapshot.empty) {
+                    emptyEl.classList.remove('hidden');
+                    return;
+                }
+
+                querySnapshot.forEach((docSnapshot) => {
+                    const activity = docSnapshot.data();
+                    const activityId = docSnapshot.id;
+
+                    const activityCard = document.createElement('div');
+                    activityCard.className = 'bg-gray-50 dark:bg-gray-700 rounded-lg p-6';
+                    activityCard.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="text-sm text-primary font-semibold mb-2">${activity.date || ''}</div>
+                                <h3 class="text-lg font-bold mb-2">${activity.title || ''}</h3>
+                                <p class="text-gray-600 dark:text-gray-400 mb-2">${activity.description || ''}</p>
+                                ${activity.link ? `<a href="${activity.link}" target="_blank" class="text-sm text-primary hover:underline">查看連結 →</a>` : ''}
+                            </div>
+                            <div class="flex space-x-2 ml-4">
+                                <button onclick="editActivity('${activityId}')" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors">編輯</button>
+                                <button onclick="deleteActivity('${activityId}')" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors">刪除</button>
+                            </div>
+                        </div>
+                    `;
+
+                    listEl.appendChild(activityCard);
+                });
+
+                listEl.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading activities:', error);
+                loadingEl.classList.add('hidden');
+                emptyEl.innerHTML = '<p class="text-red-500">載入活動時發生錯誤</p>';
+                emptyEl.classList.remove('hidden');
+            }
+        }
+
+        window.editActivity = async (id) => {
+            try {
+                const { doc, getDocs, collection } = window.firestoreModules;
+                const querySnapshot = await getDocs(collection(window.firebaseDB, 'activities'));
+
+                let activityData = null;
+                querySnapshot.forEach((docSnapshot) => {
+                    if (docSnapshot.id === id) {
+                        activityData = docSnapshot.data();
+                    }
+                });
+
+                if (activityData) {
+                    document.getElementById('activityId').value = id;
+                    document.getElementById('activityTitle').value = activityData.title || '';
+                    document.getElementById('activityDate').value = activityData.date || '';
+                    document.getElementById('activityDescription').value = activityData.description || '';
+                    document.getElementById('activityLink').value = activityData.link || '';
+                    document.getElementById('activityModalTitle').textContent = '編輯活動';
+                    document.getElementById('activityModal').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading activity:', error);
+                showAlert('載入活動資料時發生錯誤');
+            }
+        };
+
+        window.deleteActivity = (id) => {
+            showConfirm('確定要刪除此活動嗎？', async () => {
+                try {
+                    const { doc, deleteDoc } = window.firestoreModules;
+                    await deleteDoc(doc(window.firebaseDB, 'activities', id));
+                    showAlert('活動已刪除！');
+                    loadActivities();
+                } catch (error) {
+                    console.error('Error deleting activity:', error);
+                    showAlert('刪除活動時發生錯誤');
+                }
+            });
+        };
+
+        // Projects Management
+        function initProjectHandlers() {
+            const addProjectBtn = document.getElementById('addProjectBtn');
+            if (addProjectBtn) {
+                addProjectBtn.addEventListener('click', () => {
+                    document.getElementById('projectModalTitle').textContent = '新增專案';
+                    document.getElementById('projectForm').reset();
+                    document.getElementById('projectId').value = '';
+                    document.getElementById('projectModal').classList.remove('hidden');
+                });
+            }
+
+            const projectForm = document.getElementById('projectForm');
+            if (projectForm) {
+                projectForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const techInput = document.getElementById('projectTechnologies').value;
+                    const technologies = techInput ? techInput.split(',').map(t => t.trim()) : [];
+
+                    const projectData = {
+                        title: document.getElementById('projectTitle').value,
+                        status: document.getElementById('projectStatus').value,
+                        description: document.getElementById('projectDescription').value,
+                        technologies: technologies,
+                        members: parseInt(document.getElementById('projectMembers').value) || 0,
+                        link: document.getElementById('projectLink').value || ''
+                    };
+
+                    try {
+                        const projectId = document.getElementById('projectId').value;
+
+                        if (projectId) {
+                            // Update existing project
+                            const { doc, updateDoc } = window.firestoreModules;
+                            await updateDoc(doc(window.firebaseDB, 'projects', projectId), projectData);
+                            showAlert('專案已更新！');
+                        } else {
+                            // Add new project
+                            const { collection, addDoc } = window.firestoreModules;
+                            await addDoc(collection(window.firebaseDB, 'projects'), projectData);
+                            showAlert('專案已新增！');
+                        }
+
+                        document.getElementById('projectModal').classList.add('hidden');
+                        loadProjects();
+                    } catch (error) {
+                        console.error('Error saving project:', error);
+                        showAlert('儲存專案時發生錯誤');
+                    }
+                });
+            }
+        }
+
+        async function loadProjects() {
+            const loadingEl = document.getElementById('projectsLoading');
+            const listEl = document.getElementById('projectsList');
+            const emptyEl = document.getElementById('projectsEmptyState');
+
+            loadingEl.classList.remove('hidden');
+            listEl.classList.add('hidden');
+            emptyEl.classList.add('hidden');
+            listEl.innerHTML = '';
+
+            try {
+                const { collection, getDocs } = window.firestoreModules;
+                const querySnapshot = await getDocs(collection(window.firebaseDB, 'projects'));
+
+                loadingEl.classList.add('hidden');
+
+                if (querySnapshot.empty) {
+                    emptyEl.classList.remove('hidden');
+                    return;
+                }
+
+                querySnapshot.forEach((docSnapshot) => {
+                    const project = docSnapshot.data();
+                    const projectId = docSnapshot.id;
+
+                    const statusColors = {
+                        '進行中': 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
+                        '已完成': 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200',
+                        '計劃中': 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
+                    };
+
+                    const statusClass = statusColors[project.status] || statusColors['進行中'];
+                    const techTags = (project.technologies || []).map(tech =>
+                        `<span class="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">${tech}</span>`
+                    ).join(' ');
+
+                    const projectCard = document.createElement('div');
+                    projectCard.className = 'bg-gray-50 dark:bg-gray-700 rounded-lg p-6';
+                    projectCard.innerHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h3 class="text-lg font-bold">${project.title || ''}</h3>
+                                    <span class="px-3 py-1 ${statusClass} rounded-full text-xs font-semibold">${project.status || '進行中'}</span>
+                                </div>
+                                <p class="text-gray-600 dark:text-gray-400 mb-3">${project.description || ''}</p>
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    ${techTags}
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                    參與成員: ${project.members || 0} 位
+                                </div>
+                                ${project.link ? `<a href="${project.link}" target="_blank" class="text-sm text-primary hover:underline">查看專案 →</a>` : ''}
+                            </div>
+                            <div class="flex space-x-2 ml-4">
+                                <button onclick="editProject('${projectId}')" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors">編輯</button>
+                                <button onclick="deleteProject('${projectId}')" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors">刪除</button>
+                            </div>
+                        </div>
+                    `;
+
+                    listEl.appendChild(projectCard);
+                });
+
+                listEl.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                loadingEl.classList.add('hidden');
+                emptyEl.innerHTML = '<p class="text-red-500">載入專案時發生錯誤</p>';
+                emptyEl.classList.remove('hidden');
+            }
+        }
+
+        window.editProject = async (id) => {
+            try {
+                const { collection, getDocs } = window.firestoreModules;
+                const querySnapshot = await getDocs(collection(window.firebaseDB, 'projects'));
+
+                let projectData = null;
+                querySnapshot.forEach((docSnapshot) => {
+                    if (docSnapshot.id === id) {
+                        projectData = docSnapshot.data();
+                    }
+                });
+
+                if (projectData) {
+                    document.getElementById('projectId').value = id;
+                    document.getElementById('projectTitle').value = projectData.title || '';
+                    document.getElementById('projectStatus').value = projectData.status || '進行中';
+                    document.getElementById('projectDescription').value = projectData.description || '';
+                    document.getElementById('projectTechnologies').value = (projectData.technologies || []).join(', ');
+                    document.getElementById('projectMembers').value = projectData.members || 0;
+                    document.getElementById('projectLink').value = projectData.link || '';
+                    document.getElementById('projectModalTitle').textContent = '編輯專案';
+                    document.getElementById('projectModal').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading project:', error);
+                showAlert('載入專案資料時發生錯誤');
+            }
+        };
+
+        window.deleteProject = (id) => {
+            showConfirm('確定要刪除此專案嗎？', async () => {
+                try {
+                    const { doc, deleteDoc } = window.firestoreModules;
+                    await deleteDoc(doc(window.firebaseDB, 'projects', id));
+                    showAlert('專案已刪除！');
+                    loadProjects();
+                } catch (error) {
+                    console.error('Error deleting project:', error);
+                    showAlert('刪除專案時發生錯誤');
+                }
+            });
+        };
+
+        // Alert and Confirm Functions
+        function showAlert(message) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
+                    <div class="flex justify-end">
+                        <button class="px-6 py-2 bg-primary text-white hover:bg-primary-dark rounded-lg transition-colors" onclick="this.closest('.fixed').remove()">確定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        function showConfirm(message, onConfirm) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
+                    <div class="flex justify-end space-x-3">
+                        <button class="cancel-btn px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">取消</button>
+                        <button class="confirm-btn px-4 py-2 bg-red-500 text-white hover:bg-red-600 rounded transition-colors">確定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelector('.cancel-btn').addEventListener('click', () => modal.remove());
+            modal.querySelector('.confirm-btn').addEventListener('click', () => {
+                modal.remove();
+                onConfirm();
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        window.showAlert = showAlert;
+        window.showConfirm = showConfirm;
+
+        // ========================================
+        // Contacts Management
+        // ========================================
+
+        let currentFilter = 'all';
+        let allContacts = [];
+
+        async function loadContacts() {
+            const loadingEl = document.getElementById('contactsLoading');
+            const listEl = document.getElementById('contactsList');
+            const emptyEl = document.getElementById('contactsEmptyState');
+
+            loadingEl.classList.remove('hidden');
+            listEl.classList.add('hidden');
+            emptyEl.classList.add('hidden');
+            listEl.innerHTML = '';
+
+            try {
+                const { collection, query, orderBy, getDocs } = window.firestoreModules;
+                const q = query(collection(window.firebaseDB, 'contact_submissions'), orderBy('createdAt', 'desc'));
+                const querySnapshot = await getDocs(q);
+
+                loadingEl.classList.add('hidden');
+
+                if (querySnapshot.empty) {
+                    emptyEl.classList.remove('hidden');
+                    return;
+                }
+
+                allContacts = [];
+                querySnapshot.forEach((docSnapshot) => {
+                    const contact = docSnapshot.data();
+                    allContacts.push({
+                        id: docSnapshot.id,
+                        ...contact
+                    });
+                });
+
+                renderContacts();
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+                loadingEl.classList.add('hidden');
+                emptyEl.innerHTML = '<p class="text-red-500">載入訊息時發生錯誤</p>';
+                emptyEl.classList.remove('hidden');
+            }
+        }
+
+        function renderContacts() {
+            const listEl = document.getElementById('contactsList');
+            const emptyEl = document.getElementById('contactsEmptyState');
+
+            let filteredContacts = allContacts;
+            if (currentFilter === 'unread') {
+                filteredContacts = allContacts.filter(c => c.status === 'unread');
+            } else if (currentFilter === 'replied') {
+                filteredContacts = allContacts.filter(c => c.status === 'replied');
+            }
+
+            if (filteredContacts.length === 0) {
+                listEl.classList.add('hidden');
+                emptyEl.innerHTML = '<p class="text-gray-500 dark:text-gray-400">沒有符合條件的訊息</p>';
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+
+            emptyEl.classList.add('hidden');
+
+            listEl.innerHTML = '';
+            filteredContacts.forEach((contact) => {
+                const createdDate = contact.createdAt ? new Date(contact.createdAt.seconds * 1000).toLocaleString('zh-TW') : '未知時間';
+                const statusBadge = contact.status === 'replied'
+                    ? '<span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs font-semibold">已回覆</span>'
+                    : '<span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs font-semibold">未讀</span>';
+
+                const contactCard = document.createElement('div');
+                contactCard.className = 'bg-gray-50 dark:bg-gray-700 rounded-lg p-6';
+                contactCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h3 class="text-lg font-bold">${contact.subject || ''}</h3>
+                                ${statusBadge}
+                            </div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                <i class="fas fa-envelope mr-1"></i>${contact.email || ''}
+                                <span class="mx-2">|</span>
+                                <i class="fas fa-clock mr-1"></i>${createdDate}
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400 mb-3 whitespace-pre-wrap">${contact.message || ''}</p>
+                            ${contact.reply ? `
+                                <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                    <p class="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">
+                                        <i class="fas fa-reply mr-1"></i>您的回覆
+                                    </p>
+                                    <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${contact.reply}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                        回覆時間：${contact.repliedAt ? new Date(contact.repliedAt.seconds * 1000).toLocaleString('zh-TW') : ''}
+                                    </p>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="flex space-x-2 ml-4">
+                            <button onclick="showReplyModal('${contact.id}')" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors">
+                                <i class="fas fa-reply mr-1"></i>${contact.reply ? '再次回覆' : '回覆'}
+                            </button>
+                            <button onclick="deleteContact('${contact.id}')" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors">
+                                <i class="fas fa-trash mr-1"></i>刪除
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                listEl.appendChild(contactCard);
+            });
+
+            listEl.classList.remove('hidden');
+        }
+
+        window.filterContacts = function(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('bg-gray-200', 'dark:bg-gray-700');
+            });
+            event.target.classList.remove('bg-gray-200', 'dark:bg-gray-700');
+            event.target.classList.add('bg-primary', 'text-white');
+            renderContacts();
+        };
+
+        window.showReplyModal = function(contactId) {
+            const contact = allContacts.find(c => c.id === contactId);
+            if (!contact) return;
+
+            document.getElementById('replyContactId').value = contactId;
+            document.getElementById('replyEmail').textContent = contact.email;
+            document.getElementById('replySubject').textContent = contact.subject;
+            document.getElementById('replyOriginalMessage').textContent = contact.message;
+            document.getElementById('replyContent').value = contact.reply || '';
+
+            document.getElementById('replyModal').classList.remove('hidden');
+        };
+
+        window.closeReplyModal = function() {
+            document.getElementById('replyModal').classList.add('hidden');
+            document.getElementById('replyForm').reset();
+        };
+
+        window.handleReply = async function(event) {
+            event.preventDefault();
+
+            const contactId = document.getElementById('replyContactId').value;
+            const replyContent = document.getElementById('replyContent').value;
+            const contact = allContacts.find(c => c.id === contactId);
+
+            if (!contact) return;
+
+            try {
+                const { doc, updateDoc } = window.firestoreModules;
+                await updateDoc(doc(window.firebaseDB, 'contact_submissions', contactId), {
+                    reply: replyContent,
+                    repliedAt: new Date(),
+                    status: 'replied'
+                });
+
+                // 發送電郵回覆
+                const mailtoLink = `mailto:${contact.email}?subject=Re: ${encodeURIComponent(contact.subject)}&body=${encodeURIComponent(replyContent)}`;
+                window.open(mailtoLink, '_blank');
+
+                showAlert('回覆已保存！請在您的電郵客戶端發送郵件。');
+                closeReplyModal();
+                loadContacts();
+            } catch (error) {
+                console.error('Error sending reply:', error);
+                showAlert('回覆時發生錯誤');
+            }
+        };
+
+        window.deleteContact = function(id) {
+            showConfirm('確定要刪除此訊息嗎？', async () => {
+                try {
+                    const { doc, deleteDoc } = window.firestoreModules;
+                    await deleteDoc(doc(window.firebaseDB, 'contact_submissions', id));
+                    showAlert('訊息已刪除！');
+                    loadContacts();
+                } catch (error) {
+                    console.error('Error deleting contact:', error);
+                    showAlert('刪除訊息時發生錯誤');
+                }
+            });
+        };
+    </script>
+</body>
+</html>
