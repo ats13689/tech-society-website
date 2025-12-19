@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科技學會會員卡設計</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #5D5CDE;
+            --primary-dark: #4a49b8;
+            --accent: #00D4FF;
+            --accent-glow: rgba(0, 212, 255, 0.5);
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0d0d2b 100%);
+            min-height: 100vh;
+        }
+
+        .card-container {
+            perspective: 1000px;
+        }
+
+        .member-card {
+            width: 428px;
+            height: 270px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .card-container:hover .member-card {
+            transform: rotateY(10deg) rotateX(5deg);
+        }
+
+        .card-front {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a3a 0%, #2d2d5a 50%, #1a1a3a 100%);
+            border: 2px solid rgba(93, 92, 222, 0.5);
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(93, 92, 222, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* Circuit pattern background */
+        .circuit-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.08;
+            background-image:
+                linear-gradient(rgba(0, 212, 255, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.3) 1px, transparent 1px),
+                radial-gradient(circle at 20% 30%, rgba(93, 92, 222, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(0, 212, 255, 0.3) 0%, transparent 40%);
+            background-size: 30px 30px, 30px 30px, 100% 100%, 100% 100%;
+        }
+
+        /* Animated glow line - hidden for cleaner download */
+        .glow-line {
+            display: none;
+        }
+
+        /* Holographic effect - removed */
+
+        /* Logo styling */
+        .logo-icon {
+            font-family: 'Orbitron', monospace;
+            font-weight: 800;
+            font-size: 2rem;
+            color: #00D4FF;
+        }
+
+        .chip {
+            width: 50px;
+            height: 40px;
+            background: linear-gradient(135deg, #d4af37 0%, #f7e98e 50%, #d4af37 100%);
+            border-radius: 6px;
+            position: relative;
+            box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .chip::before {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            background: linear-gradient(135deg, #b8941f, #e6d574, #b8941f);
+            border-radius: 4px;
+        }
+
+        .chip::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 60%;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 2px;
+        }
+
+        .member-name {
+            font-family: 'Orbitron', monospace;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .member-id {
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 4px;
+        }
+
+        .nfc-icon {
+            position: absolute;
+            right: 25px;
+            top: 25px;
+            width: 30px;
+            height: 30px;
+            opacity: 0.6;
+        }
+
+        /* Sticker area styling */
+        .sticker-area {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px dashed rgba(0, 212, 255, 0.4);
+            border-radius: 8px;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 8px 12px;
+        }
+
+        .sticker-area-label {
+            font-size: 8px;
+            color: rgba(0, 212, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Sticker design - transparent label compatible */
+        .sticker {
+            background: transparent;
+            border-radius: 6px;
+            padding: 12px 20px;
+        }
+
+        /* QR Code styling */
+        .qr-container {
+            width: 55px;
+            height: 55px;
+            background: white;
+            border-radius: 4px;
+            padding: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-container img {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Input styling */
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(93, 92, 222, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #7B68EE);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(93, 92, 222, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(93, 92, 222, 0.6);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--accent);
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-sticker {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-sticker:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.6);
+        }
+
+        /* Card back design */
+        .card-back {
+            width: 428px;
+            height: 270px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1a1a3a 0%, #2d2d5a 50%, #1a1a3a 100%);
+            border: 2px solid rgba(93, 92, 222, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .magnetic-strip {
+            position: absolute;
+            top: 30px;
+            left: 0;
+            right: 0;
+            height: 45px;
+            background: linear-gradient(180deg, #1a1a1a 0%, #333 50%, #1a1a1a 100%);
+        }
+
+        .signature-area {
+            position: relative;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+        }
+
+        /* Tab styling */
+        .tab-btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), #7B68EE);
+            color: white;
+        }
+
+        .tab-btn:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .tab-btn:not(.active):hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        @media (max-width: 500px) {
+            .member-card, .card-back {
+                width: 340px;
+                height: 214px;
+                transform: scale(0.9);
+            }
+
+            .logo-icon {
+                font-size: 1.5rem;
+            }
+
+            .member-name {
+                font-size: 0.9rem;
+            }
+
+            .sticker-preview {
+                transform: scale(0.85);
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-3" style="font-family: 'Orbitron', monospace;">
+                <span class="bg-gradient-to-r from-purple-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                    會員卡設計系統
+                </span>
+            </h1>
+            <p class="text-gray-400">自訂您的科技學會會員卡</p>
+        </div>
+
+        <!-- Card Type Tabs -->
+        <div class="flex justify-center gap-2 mb-8 flex-wrap">
+            <button onclick="switchTab('named')" id="tabNamed" class="tab-btn active">記名會員卡</button>
+            <button onclick="switchTab('sticker')" id="tabSticker" class="tab-btn">貼紙版會員卡</button>
+            <button onclick="switchTab('anonymous')" id="tabAnonymous" class="tab-btn">不記名會員卡</button>
+            <button onclick="switchTab('temporary')" id="tabTemporary" class="tab-btn">臨時會員卡</button>
+        </div>
+
+        <!-- ===== NAMED CARD VIEW ===== -->
+        <div id="namedView">
+            <div class="flex flex-col lg:flex-row gap-8 items-center justify-center mb-10">
+                <!-- Front Card -->
+                <div class="card-container">
+                    <div id="namedCard" class="member-card card-front rounded-[20px]">
+                        <div class="circuit-pattern"></div>
+                                                <svg class="nfc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent);">
+                            <path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/>
+                            <path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/>
+                            <path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/>
+                            <path d="M16.37 2a20.16 20.16 0 0 1 0 20"/>
+                        </svg>
+                        <div class="relative z-10 p-6 h-full flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center">
+                                        <img src="https://pfst.cf2.poecdn.net/base/image/f51f06131e7dccefe87b6c4e9775bb4df5572cba70d97d94b9fdda40b4ad603c?w=915&h=829" alt="STC Logo" class="w-full h-full object-contain">
+                                    </div>
+                                    <div>
+                                        <div class="logo-icon text-xl">ATS</div>
+                                        <div class="text-[10px] text-gray-300">科技學會</div>
+                                        <div class="text-[7px] text-gray-400 tracking-wider">SCIENCE AND TECHNOLOGY CLUB</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div id="namedDisplayRoleEn" class="text-[10px] text-cyan-400 font-semibold tracking-wider">MEMBER</div>
+                                    <div id="namedDisplayRole" class="text-xs text-gray-300">會員</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="chip"></div>
+                                <div class="flex-1">
+                                    <div id="namedDisplayNameCn" class="text-white text-sm">陳大文</div>
+                                    <div id="namedDisplayName" class="member-name text-white text-base tracking-wider">CHAN TAI MAN</div>
+                                    <div class="text-[10px] text-gray-500">持卡人 CARDHOLDER</div>
+                                </div>
+                            </div>
+                            <div class="flex items-end justify-between">
+                                <div>
+                                    <div class="text-[10px] text-gray-500 mb-1">會員編號 MEMBER ID</div>
+                                    <div id="namedDisplayId" class="member-id text-cyan-400 text-sm">ATS-2024-0001</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] text-gray-500 mb-1">有效日期 VALID THRU</div>
+                                    <div id="namedDisplayExpiry" class="text-gray-300 text-sm font-medium">12/25</div>
+                                </div>
+                                                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Back Card -->
+                <div class="card-container">
+                    <div id="namedCardBack" class="card-back">
+                        <div class="circuit-pattern"></div>
+                        <div class="magnetic-strip"></div>
+                        <div class="absolute top-[90px] left-5 right-5 flex gap-4 items-start">
+                            <div class="flex-1">
+                                <div class="text-[8px] text-gray-500 mb-1">簽名區 SIGNATURE (4cm x 0.8cm)</div>
+                                <div class="signature-area flex items-center px-3">
+                                </div>
+                            </div>
+                            <div class="qr-container" id="qrcode1"></div>
+                        </div>
+                        <div class="absolute bottom-5 left-5 right-5">
+                            <div class="text-[8px] text-gray-500 leading-relaxed mb-3">
+                                此卡為科技學會官方會員憑證。如有遺失請立即聯繫學會。<br>
+                                This card is the official membership credential of ATS Tech Society.
+                            </div>
+                            <div class="text-[10px] text-gray-400 text-right">
+                                <span class="text-cyan-400">●</span> tech-society-website-eta.vercel.app
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Named Card Form -->
+            <div class="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 md:p-8 mb-8">
+                <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    自訂會員卡
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">中文姓名</label>
+                        <input type="text" id="namedMemberNameCn" class="input-field w-full" placeholder="輸入中文姓名" value="陳大文" oninput="updateNamedCard()">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">英文姓名</label>
+                        <input type="text" id="namedMemberName" class="input-field w-full" placeholder="輸入英文姓名" value="CHAN TAI MAN" oninput="updateNamedCard()">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">會員編號</label>
+                        <input type="text" id="namedMemberId" class="input-field w-full" placeholder="ATS-2024-XXXX" value="ATS-2024-0001" oninput="updateNamedCard()">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">職位/身份</label>
+                        <select id="namedMemberRole" class="input-field w-full" onchange="updateNamedCard()">
+                            <option value="會員">會員 Member</option>
+                            <option value="幹事">幹事 Committee</option>
+                            <option value="副會長">副會長 Vice President</option>
+                            <option value="會長">會長 President</option>
+                            <option value="副主席">副主席 Vice Chairman</option>
+                            <option value="主席">主席 Chairman</option>
+                            <option value="顧問">顧問 Advisor</option>
+                            <option value="榮譽會員">榮譽會員 Honorary</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">有效日期</label>
+                        <input type="month" id="namedExpiryDate" class="input-field w-full" value="2025-12" oninput="updateNamedCard()">
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <button onclick="downloadCard('namedCard')" class="btn-primary flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        下載會員卡（正面）
+                    </button>
+                    <button onclick="downloadCard('namedCardBack')" class="btn-secondary flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        下載會員卡（背面）
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== STICKER CARD VIEW ===== -->
+        <div id="stickerView" class="hidden">
+            <div class="flex flex-col lg:flex-row gap-8 items-center justify-center mb-10">
+                <!-- Card Template (without name/expiry) -->
+                <div class="card-container">
+                    <div id="stickerCard" class="member-card card-front rounded-[20px]">
+                        <div class="circuit-pattern"></div>
+                                                <svg class="nfc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent);">
+                            <path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/>
+                            <path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/>
+                            <path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/>
+                            <path d="M16.37 2a20.16 20.16 0 0 1 0 20"/>
+                        </svg>
+                        <div class="relative z-10 p-6 h-full flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center">
+                                        <img src="https://pfst.cf2.poecdn.net/base/image/f51f06131e7dccefe87b6c4e9775bb4df5572cba70d97d94b9fdda40b4ad603c?w=915&h=829" alt="STC Logo" class="w-full h-full object-contain">
+                                    </div>
+                                    <div>
+                                        <div class="logo-icon text-xl">ATS</div>
+                                        <div class="text-[10px] text-gray-300">科技學會</div>
+                                        <div class="text-[7px] text-gray-400 tracking-wider">SCIENCE AND TECHNOLOGY CLUB</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] text-cyan-400 font-semibold tracking-wider">MEMBER</div>
+                                    <div class="text-xs text-gray-300">會員</div>
+                                </div>
+                            </div>
+                            <!-- Sticker Area -->
+                            <div class="flex items-center gap-4">
+                                <div class="chip"></div>
+                                <div class="flex-1 sticker-area">
+                                </div>
+                            </div>
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="text-[10px] text-gray-500 mb-1">會員編號 MEMBER ID</div>
+                                    <div id="stickerDisplayId" class="member-id text-cyan-400 text-sm">ATS-2024-0001</div>
+                                </div>
+                                <!-- Expiry Sticker Area (aligned with member ID) -->
+                                <div class="text-right">
+                                    <div class="text-[10px] text-gray-500 mb-1">有效日期 VALID THRU</div>
+                                    <div class="text-[9px] text-gray-400 mb-1">有效日期：</div>
+                                    <div class="sticker-area-small" style="background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(0, 212, 255, 0.3); border-radius: 4px; padding: 4px 12px; min-width: 50px; height: 20px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Sticker Previews -->
+                <div class="text-center">
+                    <h3 class="text-white font-semibold mb-4 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                        </svg>
+                        貼紙預覽
+                    </h3>
+                    <!-- Name Sticker (for sticker area) -->
+                    <div class="mb-4">
+                        <p class="text-gray-400 text-xs mb-2">姓名貼紙（貼紙區）</p>
+                        <div id="stickerPreviewName" class="sticker inline-block sticker-preview" style="white-space: nowrap;">
+                            <div class="inline-flex items-center gap-2" style="white-space: nowrap;">
+                                <span id="stickerDisplayNameCn" class="text-white text-sm font-medium" style="text-shadow: 0 0 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5);">陳大文</span>
+                                <span id="stickerDisplayName" class="member-name text-white text-sm tracking-wider" style="text-shadow: 0 0 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5);">CHAN TAI MAN</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-500 text-xs mt-2">建議尺寸：5cm x 1cm</p>
+                    </div>
+                    <!-- Expiry Sticker (for bottom right) -->
+                    <div>
+                        <p class="text-gray-400 text-xs mb-2">有效日期貼紙（右下角）</p>
+                        <div id="stickerPreviewExpiry" class="sticker inline-block sticker-preview" style="white-space: nowrap;">
+                            <div class="inline-flex items-center gap-1" style="white-space: nowrap;">
+                                <span class="text-white text-xs" style="text-shadow: 0 0 3px rgba(0,0,0,0.8);">有效日期：</span>
+                                <span id="stickerDisplayExpiry" class="text-cyan-400 text-sm font-semibold" style="text-shadow: 0 0 3px rgba(0,0,0,0.8);">12/25</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-500 text-xs mt-2">建議尺寸：3cm x 0.8cm</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sticker Form -->
+            <div class="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 md:p-8 mb-8">
+                <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                    </svg>
+                    自訂貼紙
+                </h2>
+
+                <div class="p-4 bg-green-500/10 border border-green-500/30 rounded-xl mb-6">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-green-300 font-medium mb-1">貼紙版會員卡</p>
+                            <p class="text-gray-400 text-sm">會員卡本身不含姓名和有效日期，您需要下載兩張貼紙：<br>
+                            • <span class="text-white">姓名貼紙</span> - 貼在卡片中間的貼紙區<br>
+                            • <span class="text-cyan-400">有效日期貼紙</span> - 貼在卡片右下角</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">會員編號（印在卡上）</label>
+                        <input type="text" id="stickerMemberId" class="input-field w-full" placeholder="ATS-2024-XXXX" value="ATS-2024-0001" oninput="updateStickerCard()">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">有效日期（貼紙）</label>
+                        <input type="month" id="stickerExpiryDate" class="input-field w-full" value="2025-12" oninput="updateStickerCard()">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">中文姓名（貼紙）</label>
+                        <input type="text" id="stickerMemberNameCn" class="input-field w-full" placeholder="輸入中文姓名" value="陳大文" oninput="updateStickerCard()">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">英文姓名（貼紙）</label>
+                        <input type="text" id="stickerMemberName" class="input-field w-full" placeholder="輸入英文姓名" value="CHAN TAI MAN" oninput="updateStickerCard()">
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <button onclick="downloadCard('stickerCard')" class="btn-primary flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        下載會員卡
+                    </button>
+                    <button onclick="downloadNameSticker()" class="btn-sticker flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                        </svg>
+                        下載姓名貼紙
+                    </button>
+                    <button onclick="downloadExpirySticker()" class="btn-sticker flex items-center gap-2" style="background: linear-gradient(135deg, #0891b2, #0e7490);">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        下載有效日期貼紙
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ANONYMOUS CARD VIEW ===== -->
+        <div id="anonymousView" class="hidden">
+            <div class="flex flex-col lg:flex-row gap-8 items-center justify-center mb-10">
+                <!-- Front Card -->
+                <div class="card-container">
+                    <div id="anonymousCard" class="member-card card-front rounded-[20px]">
+                        <div class="circuit-pattern"></div>
+                                                <svg class="nfc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent);">
+                            <path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/>
+                            <path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/>
+                            <path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/>
+                            <path d="M16.37 2a20.16 20.16 0 0 1 0 20"/>
+                        </svg>
+                        <div class="relative z-10 p-6 h-full flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center">
+                                        <img src="https://pfst.cf2.poecdn.net/base/image/f51f06131e7dccefe87b6c4e9775bb4df5572cba70d97d94b9fdda40b4ad603c?w=915&h=829" alt="STC Logo" class="w-full h-full object-contain">
+                                    </div>
+                                    <div>
+                                        <div class="logo-icon text-xl">ATS</div>
+                                        <div class="text-[10px] text-gray-300">科技學會</div>
+                                        <div class="text-[7px] text-gray-400 tracking-wider">SCIENCE AND TECHNOLOGY CLUB</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] text-cyan-400 font-semibold tracking-wider">MEMBER</div>
+                                    <div class="text-xs text-gray-300">會員</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="chip"></div>
+                                <div class="flex-1">
+                                    <div class="member-name text-white text-lg tracking-wider">MEMBER</div>
+                                    <div class="text-[10px] text-gray-500 mt-1">持卡人 CARDHOLDER</div>
+                                </div>
+                            </div>
+                            <div class="flex items-end justify-between">
+                                <div>
+                                    <div class="text-[10px] text-gray-500 mb-1">會員編號 MEMBER ID</div>
+                                    <div class="member-id text-cyan-400 text-sm">ATS-XXXX-XXXX</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] text-gray-500 mb-1">有效日期 VALID THRU</div>
+                                    <div class="text-gray-300 text-sm font-medium">--/--</div>
+                                </div>
+                                                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Back Card -->
+                <div class="card-container">
+                    <div id="anonymousCardBack" class="card-back">
+                        <div class="circuit-pattern"></div>
+                        <div class="magnetic-strip"></div>
+                        <div class="absolute top-[90px] left-5 right-5 flex gap-4 items-start">
+                            <div class="flex-1">
+                                <div class="text-[8px] text-gray-500 mb-1">簽名區 SIGNATURE (4cm x 0.8cm)</div>
+                                <div class="signature-area flex items-center px-3">
+                                </div>
+                            </div>
+                            <div class="qr-container" id="qrcode2"></div>
+                        </div>
+                        <div class="absolute bottom-5 left-5 right-5">
+                            <div class="text-[8px] text-gray-500 leading-relaxed mb-3">
+                                此卡為科技學會官方會員憑證。如有遺失請立即聯繫學會。<br>
+                                This card is the official membership credential of ATS Tech Society.
+                            </div>
+                            <div class="text-[10px] text-gray-400 text-right">
+                                <span class="text-cyan-400">●</span> tech-society-website-eta.vercel.app
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anonymous Card Info -->
+            <div class="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 md:p-8 mb-8">
+                <div class="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl mb-6">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-cyan-300 font-medium mb-1">不記名會員卡</p>
+                            <p class="text-gray-400 text-sm">此卡片不包含個人資料，可用於臨時會員或活動參與者。持卡人資料將顯示為通用格式。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <button onclick="downloadCard('anonymousCard')" class="btn-primary flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        下載會員卡（正面）
+                    </button>
+                    <button onclick="downloadCard('anonymousCardBack')" class="btn-secondary flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        下載會員卡（背面）
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TEMPORARY CARD VIEW ===== -->
+        <div id="temporaryView" class="hidden">
+            <div class="flex flex-col lg:flex-row gap-8 items-center justify-center mb-10">
+                <!-- Front Card -->
+                <div class="card-container">
+                    <div id="temporaryCard" class="member-card card-front rounded-[20px]" style="border-color: rgba(251, 191, 36, 0.5); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(251, 191, 36, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);">
+                        <div class="circuit-pattern"></div>
+                        <svg class="nfc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent);">
+                            <path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/>
+                            <path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/>
+                            <path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/>
+                            <path d="M16.37 2a20.16 20.16 0 0 1 0 20"/>
+                        </svg>
+                        <div class="relative z-10 p-6 h-full flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center">
+                                        <img src="https://pfst.cf2.poecdn.net/base/image/f51f06131e7dccefe87b6c4e9775bb4df5572cba70d97d94b9fdda40b4ad603c?w=915&h=829" alt="STC Logo" class="w-full h-full object-contain">
+                                    </div>
+                                    <div>
+                                        <div class="logo-icon text-xl" style="color: #fbbf24;">ATS</div>
+                                        <div class="text-[10px] text-gray-300">科技學會</div>
+                                        <div class="text-[7px] text-gray-400 tracking-wider">SCIENCE AND TECHNOLOGY CLUB</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] text-yellow-400 font-semibold tracking-wider">TEMPORARY</div>
+                                    <div class="text-xs text-gray-300">臨時會員</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="chip"></div>
+                                <div class="flex-1">
+                                    <div id="tempDisplayNameCn" class="text-white text-sm">訪客</div>
+                                    <div id="tempDisplayName" class="member-name text-white text-base tracking-wider">VISITOR</div>
+                                    <div class="text-[10px] text-gray-500">臨時持卡人 TEMP CARDHOLDER</div>
+                                </div>
+                            </div>
+                            <div class="flex items-end justify-between">
+                                <div>
+                                    <div class="text-[10px] text-gray-500 mb-1">臨時編號 TEMP ID</div>
+                                    <div id="tempDisplayId" class="member-id text-yellow-400 text-sm">TMP-2024-0001</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] text-gray-500 mb-1">有效日期 VALID THRU</div>
+                                    <div id="tempDisplayExpiry" class="text-gray-300 text-sm font-medium">12/25</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temporary Card Form -->
+            <div class="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 md:p-8 mb-8">
+                <div class="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl mb-6">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-yellow-300 font-medium mb-1">臨時會員卡</p>
+                            <p class="text-gray-400 text-sm">此卡片適用於臨時訪客、活動參與者或短期會員。可自訂姓名和有效期限。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    自訂臨時會員卡
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">中文姓名</label>
+                        <input type="text" id="tempMemberNameCn" class="input-field w-full" placeholder="輸入中文姓名" value="訪客" oninput="updateTempCard()">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">英文姓名</label>
+                        <input type="text" id="tempMemberName" class="input-field w-full" placeholder="輸入英文姓名" value="VISITOR" oninput="updateTempCard()">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">臨時編號</label>
+                        <input type="text" id="tempMemberId" class="input-field w-full" placeholder="TMP-2024-XXXX" value="TMP-2024-0001" oninput="updateTempCard()">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">有效日期</label>
+                        <input type="month" id="tempExpiryDate" class="input-field w-full" value="2025-12" oninput="updateTempCard()">
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <button onclick="downloadCard('temporaryCard')" class="btn-primary flex items-center gap-2" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        下載臨時會員卡
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-white font-semibold mb-1">安全防偽</h3>
+                <p class="text-xs text-gray-400">全息防偽標籤設計</p>
+            </div>
+            <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-white font-semibold mb-1">NFC 感應</h3>
+                <p class="text-xs text-gray-400">支援無線感應驗證</p>
+            </div>
+            <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-white font-semibold mb-1">QR 驗證</h3>
+                <p class="text-xs text-gray-400">快速掃碼驗證身份</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // 配置
+        // ========================================
+        // 版本: 2025-01-24 v5.3.0 - 會員卡設計系統
+
+        // Tab switching
+        function switchTab(tab) {
+            const tabs = ['named', 'sticker', 'anonymous', 'temporary'];
+            tabs.forEach(t => {
+                document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.remove('active');
+                document.getElementById(`${t}View`).classList.add('hidden');
+            });
+            document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+            document.getElementById(`${tab}View`).classList.remove('hidden');
+        }
+
+        // Role mapping (Chinese to English)
+        const roleMap = {
+            '會員': 'MEMBER',
+            '幹事': 'COMMITTEE',
+            '副會長': 'VICE PRESIDENT',
+            '會長': 'PRESIDENT',
+            '副主席': 'VICE CHAIRMAN',
+            '主席': 'CHAIRMAN',
+            '顧問': 'ADVISOR',
+            '榮譽會員': 'HONORARY'
+        };
+
+        // Update named card
+        function updateNamedCard() {
+            const nameCn = document.getElementById('namedMemberNameCn').value || '會員姓名';
+            const name = document.getElementById('namedMemberName').value || 'MEMBER NAME';
+            const id = document.getElementById('namedMemberId').value || 'ATS-2024-0001';
+            const role = document.getElementById('namedMemberRole').value;
+            const expiry = document.getElementById('namedExpiryDate').value;
+
+            document.getElementById('namedDisplayNameCn').textContent = nameCn;
+            document.getElementById('namedDisplayName').textContent = name.toUpperCase();
+            document.getElementById('namedDisplayId').textContent = id.toUpperCase();
+            document.getElementById('namedDisplayRole').textContent = role;
+            document.getElementById('namedDisplayRoleEn').textContent = roleMap[role] || 'MEMBER';
+
+            if (expiry) {
+                const [year, month] = expiry.split('-');
+                document.getElementById('namedDisplayExpiry').textContent = `${month}/${year.slice(-2)}`;
+            }
+        }
+
+        // Update sticker card
+        function updateStickerCard() {
+            const nameCn = document.getElementById('stickerMemberNameCn').value || '會員姓名';
+            const name = document.getElementById('stickerMemberName').value || 'MEMBER NAME';
+            const id = document.getElementById('stickerMemberId').value || 'ATS-2024-0001';
+            const expiry = document.getElementById('stickerExpiryDate').value;
+
+            document.getElementById('stickerDisplayId').textContent = id.toUpperCase();
+            document.getElementById('stickerDisplayNameCn').textContent = nameCn;
+            document.getElementById('stickerDisplayName').textContent = name.toUpperCase();
+
+            if (expiry) {
+                const [year, month] = expiry.split('-');
+                document.getElementById('stickerDisplayExpiry').textContent = `${month}/${year.slice(-2)}`;
+            }
+        }
+
+        // Download card as image
+        async function downloadCard(cardId) {
+            const card = document.getElementById(cardId);
+
+            try {
+                const canvas = await html2canvas(card, {
+                    scale: 3,
+                    backgroundColor: null,
+                    logging: false,
+                    useCORS: true,
+                    removeContainer: true,
+                    onclone: function(clonedDoc) {
+                        const clonedCard = clonedDoc.getElementById(cardId);
+                        if (clonedCard) {
+                            // Remove any potential animation artifacts
+                            clonedCard.style.transform = 'none';
+                            clonedCard.style.overflow = 'hidden';
+                            // Ensure stable background
+                            clonedCard.style.background = 'linear-gradient(135deg, #1a1a3a 0%, #2d2d5a 50%, #1a1a3a 100%)';
+                        }
+                    }
+                });
+
+                const link = document.createElement('a');
+                link.download = `ATS-會員卡-${cardId}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Download error:', error);
+            }
+        }
+
+        // Download name sticker as image
+        async function downloadNameSticker() {
+            const sticker = document.getElementById('stickerPreviewName');
+            try {
+                const canvas = await html2canvas(sticker, {
+                    scale: 4,
+                    backgroundColor: null,
+                    logging: false,
+                    useCORS: true
+                });
+
+                const link = document.createElement('a');
+                const name = document.getElementById('stickerMemberName').value || 'member';
+                link.download = `ATS-姓名貼紙-${name}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Download error:', error);
+            }
+        }
+
+        // Download expiry sticker as image
+        async function downloadExpirySticker() {
+            const sticker = document.getElementById('stickerPreviewExpiry');
+            try {
+                const canvas = await html2canvas(sticker, {
+                    scale: 4,
+                    backgroundColor: null,
+                    logging: false,
+                    useCORS: true
+                });
+
+                const link = document.createElement('a');
+                const expiry = document.getElementById('stickerDisplayExpiry').textContent || 'expiry';
+                link.download = `ATS-有效日期貼紙-${expiry.replace('/', '-')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Download error:', error);
+            }
+        }
+
+        // Generate QR Codes
+        function generateQRCodes() {
+            const containers = ['qrcode1', 'qrcode2'];
+            containers.forEach(id => {
+                const container = document.getElementById(id);
+                if (container) {
+                    container.innerHTML = '';
+                    new QRCode(container, {
+                        text: 'https://tech-society-website-eta.vercel.app/index.html',
+                        width: 49,
+                        height: 49,
+                        colorDark: '#1a1a3a',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                }
+            });
+        }
+
+        // Update temporary card
+        function updateTempCard() {
+            const nameCn = document.getElementById('tempMemberNameCn').value || '訪客';
+            const name = document.getElementById('tempMemberName').value || 'VISITOR';
+            const id = document.getElementById('tempMemberId').value || 'TMP-2024-0001';
+            const expiry = document.getElementById('tempExpiryDate').value;
+
+            document.getElementById('tempDisplayNameCn').textContent = nameCn;
+            document.getElementById('tempDisplayName').textContent = name.toUpperCase();
+            document.getElementById('tempDisplayId').textContent = id.toUpperCase();
+
+            if (expiry) {
+                const [year, month] = expiry.split('-');
+                document.getElementById('tempDisplayExpiry').textContent = `${month}/${year.slice(-2)}`;
+            }
+        }
+
+        // Initialize
+        updateNamedCard();
+        updateStickerCard();
+        updateTempCard();
+        generateQRCodes();
+
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            document.documentElement.classList.toggle('dark', event.matches);
+        });
+    </script>
+
+    <!-- 版本號顯示 -->
+    <div class="fixed bottom-2 right-2 text-xs text-gray-400 bg-white/10 px-3 py-1 rounded-full">
+        v5.3.0 - 會員卡
+    </div>
+</body>
+</html>
