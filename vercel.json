@@ -1,0 +1,24 @@
+{
+    "routes": [
+        {
+            "src": "/admin.html",
+            "dest": "/admin.html"
+        },
+        {
+            "src": "/member-card.html",
+            "dest": "/member-card.html"
+        },
+        {
+            "src": "/sitemap.xml",
+            "dest": "/sitemap.xml"
+        },
+        {
+            "src": "/robots.txt",
+            "dest": "/robots.txt"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
+        }
+    ]
+}
