@@ -1,0 +1,9 @@
+# 科技學會 ATS 網站 robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap 位置
+Sitemap: https://tech-society-website-eta.vercel.app/sitemap2.xml
+
+# 禁止爬取管理後台
+Disallow: /admin.html
