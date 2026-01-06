@@ -1,0 +1,2459 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簽到系統 | 科技學會 ATS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f0ff;
+            --primary-dark: #00a8b3;
+            --secondary: #ff006e;
+            --accent: #8338ec;
+            --success: #00ff88;
+            --warning: #ffbe0b;
+            --danger: #ff006e;
+            --bg-dark: #0a0e17;
+            --bg-card: #131a2b;
+            --bg-card-hover: #1a2340;
+            --text-primary: #ffffff;
+            --text-secondary: #8892a6;
+            --border: #2a3550;
+            --glow: 0 0 20px rgba(0, 240, 255, 0.3);
+        }
+
+        .light {
+            --primary: #0066cc;
+            --primary-dark: #004499;
+            --secondary: #cc0055;
+            --accent: #6622bb;
+            --success: #00aa55;
+            --warning: #cc9900;
+            --danger: #cc0044;
+            --bg-dark: #f0f4f8;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8fafc;
+            --text-primary: #1a202c;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --glow: 0 4px 20px rgba(0, 102, 204, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(0, 240, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(131, 56, 236, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 0, 110, 0.05) 0%, transparent 40%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        .light .bg-animation::before {
+            background:
+                radial-gradient(circle at 20% 80%, rgba(0, 102, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(102, 34, 187, 0.1) 0%, transparent 50%);
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-2%, -2%) rotate(1deg); }
+        }
+
+        /* Grid Pattern */
+        .grid-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+
+        .light .grid-pattern {
+            background-image:
+                linear-gradient(rgba(0, 102, 204, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 102, 204, 0.05) 1px, transparent 1px);
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--glow);
+        }
+
+        .logo-text h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .version-badge {
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--primary);
+        }
+
+        .btn-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-icon:hover {
+            background: var(--bg-card-hover);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border-color: transparent;
+            box-shadow: var(--glow);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        /* Scan Area */
+        .scan-area {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .scan-icon {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, var(--bg-card-hover), var(--bg-card));
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--primary);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .scan-icon.scanning {
+            border-color: var(--primary);
+            animation: pulse 1.5s ease-in-out infinite;
+            box-shadow: var(--glow);
+        }
+
+        .scan-icon.success {
+            border-color: var(--success);
+            color: var(--success);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(0, 240, 255, 0); }
+        }
+
+        .scan-text {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .scan-hint {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Member Display */
+        .member-display {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            animation: slideUp 0.5s ease;
+        }
+
+        .member-display.show {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .member-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            box-shadow: var(--glow);
+        }
+
+        .member-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .member-info {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            background: var(--bg-card-hover);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .checkin-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 50px;
+            color: var(--success);
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        .checkin-status.checkout {
+            background: rgba(255, 190, 11, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .duration-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(131, 56, 236, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 50px;
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin-top: 0.75rem;
+        }
+
+        /* Write Card Section */
+        .write-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .write-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-input, .form-select {
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            box-shadow: var(--glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 240, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #00cc6a);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #cc0044);
+            color: white;
+        }
+
+        .btn-lg {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        /* Card Preview */
+        .card-preview {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 1.586;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.2) 0%, transparent 70%);
+        }
+
+        .card-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-preview-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .card-preview-chip {
+            width: 40px;
+            height: 30px;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            border-radius: 4px;
+        }
+
+        .card-preview-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card-preview-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-preview-details {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .card-preview-label {
+            font-size: 0.6rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .card-preview-value {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .card-preview-stripe {
+            height: 30px;
+            background: linear-gradient(to right, #1a1a1a, #333, #1a1a1a);
+            margin: 0 -1.5rem -1.5rem;
+            border-radius: 0 0 16px 16px;
+        }
+
+        /* Generated Data Display */
+        .data-display {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.95rem;
+            word-break: break-all;
+            color: var(--success);
+            margin: 1rem 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.blue { background: rgba(0, 240, 255, 0.1); color: var(--primary); }
+        .stat-icon.green { background: rgba(0, 255, 136, 0.1); color: var(--success); }
+        .stat-icon.purple { background: rgba(131, 56, 236, 0.1); color: var(--accent); }
+        .stat-icon.orange { background: rgba(255, 190, 11, 0.1); color: var(--warning); }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Records List */
+        .records-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .record-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+
+        .record-item:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .record-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .record-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .record-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .record-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .record-time {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .record-time-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .time-in {
+            color: var(--success);
+        }
+
+        .time-out {
+            color: var(--warning);
+        }
+
+        .record-duration {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--accent);
+            margin-top: 0.25rem;
+        }
+
+        .record-status {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            margin-top: 0.25rem;
+        }
+
+        .record-status.pending {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+        }
+
+        .record-status.completed {
+            background: rgba(255, 190, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .record-item.pending {
+            border-left: 3px solid var(--success);
+        }
+
+        .record-item.completed {
+            border-left: 3px solid var(--border);
+        }
+
+        /* Members Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th, .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table tr:hover td {
+            background: var(--bg-card-hover);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-success { background: rgba(0, 255, 136, 0.1); color: var(--success); }
+        .badge-warning { background: rgba(255, 190, 11, 0.1); color: var(--warning); }
+        .badge-danger { background: rgba(255, 0, 110, 0.1); color: var(--danger); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 1rem;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-dark);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            min-width: 280px;
+        }
+
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--danger); }
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--danger); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .logo-text h1 {
+                font-size: 1rem;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .nav-tabs {
+                padding: 0.75rem 1rem;
+            }
+
+            .nav-tab {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .scan-icon {
+                width: 120px;
+                height: 120px;
+                font-size: 3rem;
+            }
+
+            .member-name {
+                font-size: 1.5rem;
+            }
+
+            .member-info {
+                gap: 1rem;
+            }
+
+            .info-item {
+                padding: 0.75rem 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* Focus Indicator */
+        .focus-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 50;
+        }
+
+        .focus-indicator.show { opacity: 1; }
+        .focus-indicator.active { border-color: var(--success); color: var(--success); }
+        .focus-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+        }
+        .focus-indicator.active .dot {
+            background: var(--success);
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCXmBJkesxRi3ufdCRucd5vcmg-Ls_3Ks",
+            authDomain: "tech-society-566dc.firebaseapp.com",
+            projectId: "tech-society-566dc",
+            storageBucket: "tech-society-566dc.firebasestorage.app",
+            messagingSenderId: "1098408063649",
+            appId: "1:1098408063649:web:ec07e23e03c43f92c7f6e0",
+            measurementId: "G-05127H92FQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.firebaseDB = db;
+        window.firestoreModules = { collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, query, orderBy };
+        window.firebaseReady = true;
+
+        // Load data after Firebase is ready
+        if (window.loadDataFromFirebase) {
+            window.loadDataFromFirebase();
+        }
+    </script>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="grid-pattern"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-fingerprint"></i>
+            </div>
+            <div class="logo-text">
+                <h1>簽到系統</h1>
+                <p>科技學會 ATS</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="admin.html" class="btn-icon" title="返回後台" style="text-decoration: none;">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <span class="version-badge">v1.2.0</span>
+            <button class="btn-icon" onclick="toggleTheme()" title="切換主題">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <button class="btn-icon" onclick="exportData()" title="匯出資料">
+                <i class="fas fa-download"></i>
+            </button>
+            <button class="btn-icon" onclick="showImportModal()" title="匯入資料">
+                <i class="fas fa-upload"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('scan')">
+            <i class="fas fa-wifi"></i> 刷卡簽到
+        </button>
+        <button class="nav-tab" onclick="switchTab('write')">
+            <i class="fas fa-pen"></i> 寫入會員卡
+        </button>
+        <button class="nav-tab" onclick="switchTab('members')">
+            <i class="fas fa-users"></i> 會員管理
+        </button>
+        <button class="nav-tab" onclick="switchTab('records')">
+            <i class="fas fa-history"></i> 簽到記錄
+        </button>
+        <button class="nav-tab" onclick="showTimeSettingsModal()" style="background: linear-gradient(135deg, rgba(255, 190, 11, 0.2), rgba(255, 150, 0, 0.1)); border-color: var(--warning);">
+            <i class="fas fa-clock"></i> 時間設定
+        </button>
+        <button class="nav-tab" onclick="openPublicPage()" style="background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 200, 100, 0.1)); border-color: var(--success);">
+            <i class="fas fa-desktop"></i> 公開簽到
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- ========== Scan Tab ========== -->
+        <div id="tab-scan" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-credit-card"></i>
+                        刷卡簽到
+                    </h2>
+                    <button class="btn btn-secondary" onclick="focusCardInput()">
+                        <i class="fas fa-sync-alt"></i> 重新啟動
+                    </button>
+                </div>
+
+                <div class="scan-area" id="scanArea">
+                    <div class="scan-icon" id="scanIcon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <p class="scan-text">請刷會員卡</p>
+                    <p class="scan-hint">將磁條卡在讀卡機上刷過</p>
+                </div>
+
+                <div class="member-display" id="memberDisplay">
+                    <div class="member-avatar" id="memberAvatar">
+                        <span id="memberInitial">A</span>
+                    </div>
+                    <h2 class="member-name" id="memberName">會員姓名</h2>
+                    <div class="member-info">
+                        <div class="info-item">
+                            <div class="info-label">班別</div>
+                            <div class="info-value" id="memberClass">5A</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">學號</div>
+                            <div class="info-value" id="memberNumber">12345</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">會員編號</div>
+                            <div class="info-value" id="memberId">M001</div>
+                        </div>
+                    </div>
+                    <div class="checkin-status" id="checkinStatus">
+                        <i class="fas fa-check-circle" id="statusIcon"></i>
+                        <span id="statusText">簽到成功！</span>
+                        <span id="checkinTime"></span>
+                    </div>
+                    <div class="duration-info" id="durationInfo" style="display: none;">
+                        <i class="fas fa-clock"></i>
+                        <span>停留時間：</span>
+                        <span id="durationTime"></span>
+                    </div>
+                    <button class="btn btn-primary btn-lg" onclick="resetScan()" style="margin-top: 1.5rem;">
+                        <i class="fas fa-redo"></i> 下一位
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                    <div>
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">總會員數</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-user-check"></i></div>
+                    <div>
+                        <div class="stat-value" id="statToday">0</div>
+                        <div class="stat-label">今日簽到</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="stat-value" id="statLast">--:--</div>
+                        <div class="stat-label">最後簽到</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-percentage"></i></div>
+                    <div>
+                        <div class="stat-value" id="statRate">0%</div>
+                        <div class="stat-label">出席率</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== Write Card Tab ========== -->
+        <div id="tab-write" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-pen"></i>
+                        寫入會員卡
+                    </h2>
+                </div>
+
+                <div class="write-section">
+                    <div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">會員編號 *</label>
+                                <input type="text" class="form-input" id="writeMemberId"
+                                       placeholder="例如: M001" oninput="updateCardPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">姓名 *</label>
+                                <input type="text" class="form-input" id="writeName"
+                                       placeholder="輸入會員姓名" oninput="updateCardPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">班別 *</label>
+                                <input type="text" class="form-input" id="writeClass"
+                                       placeholder="例如: 5A" oninput="updateCardPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">學號 *</label>
+                                <input type="text" class="form-input" id="writeNumber"
+                                       placeholder="輸入學號" oninput="updateCardPreview()">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label class="form-label">磁條數據（複製此數據寫入卡片）</label>
+                            <div class="data-display" id="cardData">請填寫以上資料後點擊「生成數據」</div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="generateCardData()">
+                                <i class="fas fa-cog"></i> 生成數據
+                            </button>
+                            <button class="btn btn-secondary" onclick="copyCardData()">
+                                <i class="fas fa-copy"></i> 複製數據
+                            </button>
+                            <button class="btn btn-success" onclick="saveAsMember()">
+                                <i class="fas fa-save"></i> 儲存會員
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="margin-bottom: 1rem; display: block;">會員卡預覽</label>
+                        <div class="card-preview">
+                            <div class="card-preview-header">
+                                <div class="card-preview-logo">科技學會 ATS</div>
+                                <div class="card-preview-chip"></div>
+                            </div>
+                            <div class="card-preview-info">
+                                <div class="card-preview-number" id="previewNumber">M000-0000</div>
+                                <div class="card-preview-details">
+                                    <div>
+                                        <div class="card-preview-label">持卡人</div>
+                                        <div class="card-preview-value" id="previewName">會員姓名</div>
+                                    </div>
+                                    <div>
+                                        <div class="card-preview-label">班別</div>
+                                        <div class="card-preview-value" id="previewClass">--</div>
+                                    </div>
+                                    <div>
+                                        <div class="card-preview-label">學號</div>
+                                        <div class="card-preview-value" id="previewStudentNo">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-preview-stripe"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-info-circle"></i>
+                        使用說明
+                    </h2>
+                </div>
+                <div style="color: var(--text-secondary); line-height: 1.8;">
+                    <p><strong>磁條數據格式：</strong><code style="color: var(--primary);">%ATS|會員編號|姓名|班別|學號?</code></p>
+                    <p style="margin-top: 0.5rem;"><strong>範例：</strong><code style="color: var(--success);">%ATS|M001|陳大文|5A|12345?</code></p>
+                    <p style="margin-top: 1rem;"><i class="fas fa-lightbulb" style="color: var(--warning);"></i> 使用寫卡機將生成的數據寫入磁條卡的 Track 2</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== Members Tab ========== -->
+        <div id="tab-members" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-users"></i>
+                        會員管理
+                    </h2>
+                    <button class="btn btn-primary" onclick="showAddMemberModal()">
+                        <i class="fas fa-plus"></i> 新增會員
+                    </button>
+                </div>
+
+                <div class="table-container" id="membersTableContainer">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>會員編號</th>
+                                <th>姓名</th>
+                                <th>班別</th>
+                                <th>學號</th>
+                                <th>狀態</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="empty-state" id="membersEmpty" style="display: none;">
+                    <i class="fas fa-users-slash"></i>
+                    <p>暫無會員資料</p>
+                    <button class="btn btn-primary" onclick="showAddMemberModal()" style="margin-top: 1rem;">
+                        <i class="fas fa-plus"></i> 新增第一位會員
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== Records Tab ========== -->
+        <div id="tab-records" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-history"></i>
+                        簽到記錄
+                    </h2>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <input type="date" class="form-input" id="recordDate"
+                               onchange="filterRecords()" style="width: auto;">
+                        <button class="btn btn-danger" onclick="confirmClearRecords()">
+                            <i class="fas fa-trash"></i> 清除今日
+                        </button>
+                    </div>
+                </div>
+
+                <div class="records-list" id="recordsList"></div>
+
+                <div class="empty-state" id="recordsEmpty" style="display: none;">
+                    <i class="fas fa-clipboard-list"></i>
+                    <p>暫無簽到記錄</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>科技學會 ATS 簽到系統 v1.2.0 | <a href="https://tech-society-website-eta.vercel.app" target="_blank">官方網站</a></p>
+    </footer>
+
+    <!-- Focus Indicator -->
+    <div class="focus-indicator" id="focusIndicator">
+        <span class="dot"></span>
+        <span id="focusText">點擊啟動掃描</span>
+    </div>
+
+    <!-- Add/Edit Member Modal -->
+    <div class="modal-overlay" id="memberModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="memberModalTitle">新增會員</h3>
+                <button class="modal-close" onclick="closeMemberModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">會員編號 *</label>
+                    <input type="text" class="form-input" id="modalMemberId" placeholder="例如: M001">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">姓名 *</label>
+                    <input type="text" class="form-input" id="modalName" placeholder="輸入姓名">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">班別 *</label>
+                    <input type="text" class="form-input" id="modalClass" placeholder="例如: 5A">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">學號 *</label>
+                    <input type="text" class="form-input" id="modalNumber" placeholder="輸入學號">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeMemberModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveMember()">
+                    <i class="fas fa-save"></i> 儲存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">匯入資料</h3>
+                <button class="modal-close" onclick="closeImportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">貼上 JSON 資料</label>
+                <textarea class="form-input" id="importData" rows="10"
+                          placeholder='{"members": [...], "records": [...]}'
+                          style="resize: vertical;"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeImportModal()">取消</button>
+                <button class="btn btn-primary" onclick="importData()">
+                    <i class="fas fa-upload"></i> 匯入
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmTitle">確認</h3>
+                <button class="modal-close" onclick="closeConfirmModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p style="color: var(--text-secondary);" id="confirmMessage">確定要執行此操作嗎？</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">取消</button>
+                <button class="btn btn-danger" id="confirmBtn" onclick="executeConfirm()">
+                    <i class="fas fa-check"></i> 確認
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Settings Modal -->
+    <div class="modal-overlay" id="timeSettingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-clock" style="color: var(--warning);"></i> 時間設定</h3>
+                <button class="modal-close" onclick="closeTimeSettingsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                設定簽到時間範圍，用於判斷會員是否遲到或早退
+            </p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">開始時間（遲到判定）</label>
+                    <input type="time" class="form-input" id="settingStartTime" value="09:00">
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">超過此時間進入為「遲到」</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">結束時間（早退判定）</label>
+                    <input type="time" class="form-input" id="settingEndTime" value="17:00">
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">早於此時間離開為「早退」</p>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                    <input type="checkbox" id="settingEnableTimeCheck" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    <span>啟用遲到/早退/正常狀態顯示</span>
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeTimeSettingsModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveTimeSettings()">
+                    <i class="fas fa-save"></i> 儲存設定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ==================== App State ====================
+        const APP_VERSION = '1.3.0';
+        let members = [];
+        let records = [];
+        let editingMemberId = null;
+        let confirmCallback = null;
+        let cardInputBuffer = '';
+        let cardInputTimeout = null;
+        let isFirebaseReady = false;
+
+        // Time settings
+        let timeSettings = {
+            startTime: '09:00',
+            endTime: '17:00',
+            enableTimeCheck: true
+        };
+
+        // ==================== Firebase Data Functions ====================
+        window.loadDataFromFirebase = async function() {
+            if (!window.firebaseDB || !window.firestoreModules) {
+                console.log('Firebase not ready, retrying...');
+                setTimeout(window.loadDataFromFirebase, 500);
+                return;
+            }
+
+            isFirebaseReady = true;
+            const { collection, getDocs, doc, getDoc, query, orderBy } = window.firestoreModules;
+            const db = window.firebaseDB;
+
+            try {
+                // Load members
+                const membersSnapshot = await getDocs(collection(db, 'checkin_members'));
+                members = [];
+                membersSnapshot.forEach((doc) => {
+                    members.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Load records
+                const recordsSnapshot = await getDocs(collection(db, 'checkin_records'));
+                records = [];
+                recordsSnapshot.forEach((doc) => {
+                    records.push({ docId: doc.id, ...doc.data() });
+                });
+
+                // Sort records by time descending
+                records.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+                console.log(`Loaded ${members.length} members and ${records.length} records from Firebase`);
+
+                // Update UI
+                updateStats();
+                renderMembers();
+                renderRecords();
+                showToast(`已載入 ${members.length} 位會員資料`, 'success');
+            } catch (error) {
+                console.error('Error loading data from Firebase:', error);
+                showToast('載入資料失敗', 'error');
+            }
+        };
+
+        async function saveMemberToFirebase(member) {
+            if (!isFirebaseReady) return;
+            const { doc, setDoc } = window.firestoreModules;
+            const db = window.firebaseDB;
+
+            try {
+                await setDoc(doc(db, 'checkin_members', member.id), {
+                    name: member.name,
+                    class: member.class,
+                    number: member.number,
+                    status: member.status || 'active'
+                });
+            } catch (error) {
+                console.error('Error saving member:', error);
+                throw error;
+            }
+        }
+
+        async function deleteMemberFromFirebase(memberId) {
+            if (!isFirebaseReady) return;
+            const { doc, deleteDoc } = window.firestoreModules;
+            const db = window.firebaseDB;
+
+            try {
+                await deleteDoc(doc(db, 'checkin_members', memberId));
+            } catch (error) {
+                console.error('Error deleting member:', error);
+                throw error;
+            }
+        }
+
+        async function saveRecordToFirebase(record) {
+            if (!isFirebaseReady) return;
+            const { doc, setDoc, collection } = window.firestoreModules;
+            const db = window.firebaseDB;
+
+            try {
+                const recordId = record.docId || `${record.memberId}_${Date.now()}`;
+                await setDoc(doc(db, 'checkin_records', recordId), {
+                    memberId: record.memberId,
+                    name: record.name,
+                    class: record.class,
+                    number: record.number,
+                    type: record.type,
+                    time: record.time,
+                    checkoutTime: record.checkoutTime || null,
+                    timeStatus: record.timeStatus || null
+                });
+                return recordId;
+            } catch (error) {
+                console.error('Error saving record:', error);
+                throw error;
+            }
+        }
+
+        async function updateRecordInFirebase(record) {
+            if (!isFirebaseReady || !record.docId) return;
+            const { doc, updateDoc } = window.firestoreModules;
+            const db = window.firebaseDB;
+
+            try {
+                await updateDoc(doc(db, 'checkin_records', record.docId), {
+                    checkoutTime: record.checkoutTime,
+                    timeStatus: record.timeStatus
+                });
+            } catch (error) {
+                console.error('Error updating record:', error);
+                throw error;
+            }
+        }
+
+        // ==================== Initialize ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme detection
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.remove('light');
+                document.getElementById('themeIcon').className = 'fas fa-moon';
+            } else {
+                document.body.classList.add('light');
+                document.getElementById('themeIcon').className = 'fas fa-sun';
+            }
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                if (event.matches) {
+                    document.body.classList.remove('light');
+                    document.getElementById('themeIcon').className = 'fas fa-moon';
+                } else {
+                    document.body.classList.add('light');
+                    document.getElementById('themeIcon').className = 'fas fa-sun';
+                }
+            });
+
+            // Set today's date
+            document.getElementById('recordDate').valueAsDate = new Date();
+
+            // Check if Firebase is ready, otherwise wait
+            if (window.firebaseReady) {
+                window.loadDataFromFirebase();
+            }
+
+            // Initial render (will be updated when Firebase loads)
+            updateStats();
+            renderMembers();
+            renderRecords();
+
+            // Focus for card input
+            focusCardInput();
+
+            // Global keyboard listener for card swipe
+            document.addEventListener('keydown', handleGlobalKeydown);
+
+            // Click to focus on scan tab
+            document.addEventListener('click', function(e) {
+                const scanTab = document.getElementById('tab-scan');
+                if (scanTab.classList.contains('active')) {
+                    if (!e.target.closest('button') && !e.target.closest('input') &&
+                        !e.target.closest('textarea') && !e.target.closest('.modal-overlay')) {
+                        focusCardInput();
+                    }
+                }
+            });
+        });
+
+        // ==================== Theme ====================
+        function toggleTheme() {
+            document.body.classList.toggle('light');
+            const icon = document.getElementById('themeIcon');
+            icon.className = document.body.classList.contains('light') ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // ==================== Navigation ====================
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+
+            if (tabId === 'scan') {
+                setTimeout(focusCardInput, 100);
+            }
+        }
+
+        // ==================== Card Reader ====================
+        function focusCardInput() {
+            cardInputBuffer = '';
+            updateFocusIndicator(true);
+            document.getElementById('scanIcon').classList.add('scanning');
+        }
+
+        function updateFocusIndicator(active) {
+            const indicator = document.getElementById('focusIndicator');
+            const text = document.getElementById('focusText');
+            indicator.classList.add('show');
+
+            if (active) {
+                indicator.classList.add('active');
+                text.textContent = '掃描器已啟動，請刷卡';
+            } else {
+                indicator.classList.remove('active');
+                text.textContent = '點擊頁面啟動掃描';
+            }
+        }
+
+        function handleGlobalKeydown(e) {
+            const scanTab = document.getElementById('tab-scan');
+            if (!scanTab.classList.contains('active')) return;
+
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.key === '%' || e.key === ';' || cardInputBuffer.length > 0) {
+                if (e.key === 'Enter') {
+                    processCardData(cardInputBuffer);
+                    cardInputBuffer = '';
+                    clearTimeout(cardInputTimeout);
+                    e.preventDefault();
+                } else if (e.key.length === 1) {
+                    cardInputBuffer += e.key;
+
+                    clearTimeout(cardInputTimeout);
+                    cardInputTimeout = setTimeout(() => {
+                        if (cardInputBuffer.length > 5) {
+                            processCardData(cardInputBuffer);
+                        }
+                        cardInputBuffer = '';
+                    }, 150);
+
+                    e.preventDefault();
+                }
+            }
+        }
+
+        function processCardData(data) {
+            console.log('Card data:', data);
+
+            let parsed = null;
+
+            // Parse ATS format: %ATS|會員編號|姓名|班別|學號?
+            const atsMatch = data.match(/%ATS\|([^|]+)\|([^|]+)\|([^|]+)\|([^?]+)\??/);
+            if (atsMatch) {
+                parsed = {
+                    id: atsMatch[1],
+                    name: atsMatch[2],
+                    class: atsMatch[3],
+                    number: atsMatch[4]
+                };
+            }
+
+            // Try simple format
+            if (!parsed) {
+                const simpleMatch = data.match(/[%;]([^|]+)\|([^|]+)\|([^|]+)\|([^?]+)\??/);
+                if (simpleMatch) {
+                    parsed = {
+                        id: simpleMatch[1],
+                        name: simpleMatch[2],
+                        class: simpleMatch[3],
+                        number: simpleMatch[4]
+                    };
+                }
+            }
+
+            // Try just member ID lookup
+            if (!parsed) {
+                let cleanData = data.replace(/^[%;]/, '').replace(/\?$/, '').trim();
+                const member = members.find(m =>
+                    m.id === cleanData ||
+                    m.number === cleanData ||
+                    m.id.toLowerCase() === cleanData.toLowerCase()
+                );
+                if (member) {
+                    parsed = { ...member };
+                }
+            }
+
+            if (parsed) {
+                showMemberInfo(parsed);
+                recordCheckin(parsed);
+            } else {
+                showToast('無法識別卡片數據', 'error');
+                document.getElementById('scanIcon').classList.remove('scanning');
+                setTimeout(() => {
+                    document.getElementById('scanIcon').classList.add('scanning');
+                }, 1000);
+            }
+        }
+
+        function resetScan() {
+            document.getElementById('scanArea').style.display = 'block';
+            document.getElementById('memberDisplay').classList.remove('show');
+            document.getElementById('scanIcon').classList.remove('success');
+            focusCardInput();
+            updateStats();
+        }
+
+        function playSuccessSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 880;
+                osc.type = 'sine';
+                gain.gain.value = 0.2;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.stop(ctx.currentTime + 0.15);
+            } catch (e) { /* Audio not supported */ }
+        }
+
+        // ==================== Write Card ====================
+        function updateCardPreview() {
+            const id = document.getElementById('writeMemberId').value || 'M000';
+            const name = document.getElementById('writeName').value || '會員姓名';
+            const cls = document.getElementById('writeClass').value || '--';
+            const num = document.getElementById('writeNumber').value || '0000';
+
+            document.getElementById('previewNumber').textContent = `${id.toUpperCase()}-${num}`;
+            document.getElementById('previewName').textContent = name;
+            document.getElementById('previewClass').textContent = cls;
+            document.getElementById('previewStudentNo').textContent = num;
+        }
+
+        function generateCardData() {
+            const id = document.getElementById('writeMemberId').value.trim();
+            const name = document.getElementById('writeName').value.trim();
+            const cls = document.getElementById('writeClass').value.trim();
+            const num = document.getElementById('writeNumber').value.trim();
+
+            if (!id || !name || !cls || !num) {
+                showToast('請填寫所有必填欄位', 'error');
+                return;
+            }
+
+            const data = `%ATS|${id}|${name}|${cls}|${num}?`;
+            document.getElementById('cardData').textContent = data;
+            showToast('數據已生成', 'success');
+        }
+
+        function copyCardData() {
+            const data = document.getElementById('cardData').textContent;
+            if (data.includes('請填寫')) {
+                showToast('請先生成數據', 'error');
+                return;
+            }
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(data).then(() => {
+                    showToast('已複製到剪貼簿', 'success');
+                }).catch(() => {
+                    showToast('複製失敗', 'error');
+                });
+            }
+        }
+
+        function saveAsMember() {
+            const id = document.getElementById('writeMemberId').value.trim();
+            const name = document.getElementById('writeName').value.trim();
+            const cls = document.getElementById('writeClass').value.trim();
+            const num = document.getElementById('writeNumber').value.trim();
+
+            if (!id || !name || !cls || !num) {
+                showToast('請填寫所有必填欄位', 'error');
+                return;
+            }
+
+            const existingIndex = members.findIndex(m => m.id === id);
+            if (existingIndex >= 0) {
+                members[existingIndex] = { id, name, class: cls, number: num, status: 'active' };
+                showToast('會員資料已更新', 'success');
+            } else {
+                members.push({ id, name, class: cls, number: num, status: 'active' });
+                showToast('會員已新增', 'success');
+            }
+
+            renderMembers();
+            updateStats();
+
+            // Clear form
+            document.getElementById('writeMemberId').value = '';
+            document.getElementById('writeName').value = '';
+            document.getElementById('writeClass').value = '';
+            document.getElementById('writeNumber').value = '';
+            document.getElementById('cardData').textContent = '請填寫以上資料後點擊「生成數據」';
+            updateCardPreview();
+        }
+
+        // ==================== Members Management ====================
+        function showAddMemberModal() {
+            editingMemberId = null;
+            document.getElementById('memberModalTitle').textContent = '新增會員';
+            document.getElementById('modalMemberId').value = '';
+            document.getElementById('modalName').value = '';
+            document.getElementById('modalClass').value = '';
+            document.getElementById('modalNumber').value = '';
+            document.getElementById('memberModal').classList.add('show');
+        }
+
+        function showEditMemberModal(id) {
+            const member = members.find(m => m.id === id);
+            if (!member) return;
+
+            editingMemberId = id;
+            document.getElementById('memberModalTitle').textContent = '編輯會員';
+            document.getElementById('modalMemberId').value = member.id;
+            document.getElementById('modalName').value = member.name;
+            document.getElementById('modalClass').value = member.class;
+            document.getElementById('modalNumber').value = member.number;
+            document.getElementById('memberModal').classList.add('show');
+        }
+
+        function closeMemberModal() {
+            document.getElementById('memberModal').classList.remove('show');
+            editingMemberId = null;
+        }
+
+        async function saveMember() {
+            const id = document.getElementById('modalMemberId').value.trim();
+            const name = document.getElementById('modalName').value.trim();
+            const cls = document.getElementById('modalClass').value.trim();
+            const num = document.getElementById('modalNumber').value.trim();
+
+            if (!id || !name || !cls || !num) {
+                showToast('請填寫所有必填欄位', 'error');
+                return;
+            }
+
+            const member = { id, name, class: cls, number: num, status: 'active' };
+
+            try {
+                if (editingMemberId) {
+                    const index = members.findIndex(m => m.id === editingMemberId);
+                    if (index >= 0) {
+                        members[index] = member;
+                    }
+                    await saveMemberToFirebase(member);
+                    showToast('會員資料已更新', 'success');
+                } else {
+                    if (members.some(m => m.id === id)) {
+                        showToast('會員編號已存在', 'error');
+                        return;
+                    }
+                    members.push(member);
+                    await saveMemberToFirebase(member);
+                    showToast('會員已新增', 'success');
+                }
+
+                closeMemberModal();
+                renderMembers();
+                updateStats();
+            } catch (error) {
+                showToast('儲存失敗，請重試', 'error');
+            }
+        }
+
+        function confirmDeleteMember(id) {
+            showConfirm('確認刪除', '確定要刪除此會員嗎？此操作無法復原。', async () => {
+                try {
+                    members = members.filter(m => m.id !== id);
+                    await deleteMemberFromFirebase(id);
+                    showToast('會員已刪除', 'success');
+                    renderMembers();
+                    updateStats();
+                } catch (error) {
+                    showToast('刪除失敗，請重試', 'error');
+                }
+            });
+        }
+
+        function renderMembers() {
+            const tbody = document.getElementById('membersTableBody');
+            const empty = document.getElementById('membersEmpty');
+            const container = document.getElementById('membersTableContainer');
+
+            if (members.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                container.style.display = 'none';
+                return;
+            }
+
+            empty.style.display = 'none';
+            container.style.display = 'block';
+
+            tbody.innerHTML = members.map(m => `
+                <tr>
+                    <td><strong>${escapeHtml(m.id)}</strong></td>
+                    <td>${escapeHtml(m.name)}</td>
+                    <td>${escapeHtml(m.class)}</td>
+                    <td>${escapeHtml(m.number)}</td>
+                    <td><span class="badge badge-success">有效</span></td>
+                    <td>
+                        <button class="btn-icon" onclick="showEditMemberModal('${escapeHtml(m.id)}')" title="編輯">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon" onclick="confirmDeleteMember('${escapeHtml(m.id)}')" title="刪除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ==================== Records ====================
+        async function recordCheckin(member) {
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+
+            // Check if member already checked in today (without checkout)
+            const todayCheckin = records.find(r => {
+                const recordDate = new Date(r.time).toISOString().split('T')[0];
+                return r.memberId === member.id && recordDate === today && r.type === 'checkin' && !r.checkoutTime;
+            });
+
+            try {
+                if (todayCheckin) {
+                    // This is a checkout - update existing record
+                    todayCheckin.checkoutTime = now.toISOString();
+                    todayCheckin.type = 'completed';
+
+                    // Calculate duration
+                    const checkinTime = new Date(todayCheckin.time);
+                    const duration = now - checkinTime;
+                    todayCheckin.duration = duration;
+
+                    // Save to Firebase
+                    await updateRecordInFirebase(todayCheckin);
+
+                    // Update UI to show checkout
+                    showCheckoutInfo(member, checkinTime, now, duration);
+                } else {
+                    // This is a new checkin
+                    const newRecord = {
+                        memberId: member.id,
+                        name: member.name,
+                        class: member.class,
+                        number: member.number,
+                        time: now.toISOString(),
+                        type: 'checkin',
+                        checkoutTime: null,
+                        duration: null
+                    };
+
+                    // Save to Firebase and get docId
+                    const docId = await saveRecordToFirebase(newRecord);
+                    newRecord.docId = docId;
+                    records.unshift(newRecord);
+
+                    // Update UI to show checkin
+                    showCheckinInfo(member, now);
+                }
+
+                renderRecords();
+                updateStats();
+            } catch (error) {
+                console.error('Error recording checkin:', error);
+                showToast('簽到記錄失敗', 'error');
+            }
+        }
+
+        function showCheckinInfo(member, time) {
+            document.getElementById('scanArea').style.display = 'none';
+            document.getElementById('memberDisplay').classList.add('show');
+
+            document.getElementById('memberInitial').textContent = member.name.charAt(0);
+            document.getElementById('memberName').textContent = member.name;
+            document.getElementById('memberClass').textContent = member.class;
+            document.getElementById('memberNumber').textContent = member.number;
+            document.getElementById('memberId').textContent = member.id;
+
+            document.getElementById('checkinTime').textContent =
+                time.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+
+            // Set checkin style
+            const statusEl = document.getElementById('checkinStatus');
+            statusEl.classList.remove('checkout');
+            document.getElementById('statusIcon').className = 'fas fa-sign-in-alt';
+            document.getElementById('statusText').textContent = '簽到成功！';
+
+            // Hide duration info
+            document.getElementById('durationInfo').style.display = 'none';
+
+            document.getElementById('scanIcon').classList.remove('scanning');
+            document.getElementById('scanIcon').classList.add('success');
+
+            playSuccessSound();
+        }
+
+        function showCheckoutInfo(member, checkinTime, checkoutTime, duration) {
+            document.getElementById('scanArea').style.display = 'none';
+            document.getElementById('memberDisplay').classList.add('show');
+
+            document.getElementById('memberInitial').textContent = member.name.charAt(0);
+            document.getElementById('memberName').textContent = member.name;
+            document.getElementById('memberClass').textContent = member.class;
+            document.getElementById('memberNumber').textContent = member.number;
+            document.getElementById('memberId').textContent = member.id;
+
+            document.getElementById('checkinTime').textContent =
+                checkoutTime.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+
+            // Set checkout style
+            const statusEl = document.getElementById('checkinStatus');
+            statusEl.classList.add('checkout');
+            document.getElementById('statusIcon').className = 'fas fa-sign-out-alt';
+            document.getElementById('statusText').textContent = '離開成功！';
+
+            // Show duration info
+            document.getElementById('durationInfo').style.display = 'inline-flex';
+            document.getElementById('durationTime').textContent = formatDuration(duration);
+
+            document.getElementById('scanIcon').classList.remove('scanning');
+            document.getElementById('scanIcon').classList.add('success');
+
+            playCheckoutSound();
+        }
+
+        function formatDuration(ms) {
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+
+            if (hours > 0) {
+                return `${hours} 小時 ${minutes % 60} 分鐘`;
+            } else if (minutes > 0) {
+                return `${minutes} 分鐘`;
+            } else {
+                return `${seconds} 秒`;
+            }
+        }
+
+        function playCheckoutSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 660;
+                osc.type = 'sine';
+                gain.gain.value = 0.2;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                osc.stop(ctx.currentTime + 0.1);
+
+                // Second beep
+                setTimeout(() => {
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.frequency.value = 880;
+                    osc2.type = 'sine';
+                    gain2.gain.value = 0.2;
+                    osc2.start();
+                    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                    osc2.stop(ctx.currentTime + 0.15);
+                }, 120);
+            } catch (e) { /* Audio not supported */ }
+        }
+
+        function renderRecords() {
+            const container = document.getElementById('recordsList');
+            const empty = document.getElementById('recordsEmpty');
+            const filterDate = document.getElementById('recordDate').value;
+
+            let filteredRecords = records;
+            if (filterDate) {
+                filteredRecords = records.filter(r => {
+                    const recordDate = new Date(r.time).toISOString().split('T')[0];
+                    return recordDate === filterDate;
+                });
+            }
+
+            if (filteredRecords.length === 0) {
+                container.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            container.innerHTML = filteredRecords.map(r => {
+                const checkinTime = new Date(r.time);
+                const checkoutTime = r.checkoutTime ? new Date(r.checkoutTime) : null;
+                const isCompleted = r.type === 'completed';
+                const statusClass = isCompleted ? 'completed' : 'pending';
+                const statusIcon = isCompleted ? 'fa-check-double' : 'fa-hourglass-half';
+                const statusText = isCompleted ? '已離開' : '在場中';
+
+                let timeDisplay = '';
+                if (isCompleted && checkoutTime) {
+                    timeDisplay = `
+                        <div class="record-time-detail">
+                            <span class="time-in"><i class="fas fa-sign-in-alt"></i> ${checkinTime.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span class="time-out"><i class="fas fa-sign-out-alt"></i> ${checkoutTime.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div class="record-duration">${formatDuration(r.duration)}</div>
+                    `;
+                } else {
+                    timeDisplay = `
+                        <div class="record-time-detail">
+                            <span class="time-in"><i class="fas fa-sign-in-alt"></i> ${checkinTime.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div class="record-status ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusText}</div>
+                    `;
+                }
+
+                return `
+                    <div class="record-item ${statusClass}">
+                        <div class="record-avatar">${r.name.charAt(0)}</div>
+                        <div class="record-info">
+                            <div class="record-name">${escapeHtml(r.name)}</div>
+                            <div class="record-meta">${escapeHtml(r.class)} · ${escapeHtml(r.number)}</div>
+                        </div>
+                        <div class="record-time">
+                            ${timeDisplay}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterRecords() {
+            renderRecords();
+        }
+
+        function confirmClearRecords() {
+            showConfirm('清除記錄', '確定要清除今日所有簽到記錄嗎？', () => {
+                const today = new Date().toISOString().split('T')[0];
+                records = records.filter(r => {
+                    const recordDate = new Date(r.time).toISOString().split('T')[0];
+                    return recordDate !== today;
+                });
+                renderRecords();
+                updateStats();
+                showToast('今日記錄已清除', 'success');
+            });
+        }
+
+        // ==================== Stats ====================
+        function updateStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayRecords = records.filter(r => {
+                const recordDate = new Date(r.time).toISOString().split('T')[0];
+                return recordDate === today;
+            });
+
+            const uniqueToday = [...new Set(todayRecords.map(r => r.memberId))].length;
+
+            document.getElementById('statTotal').textContent = members.length;
+            document.getElementById('statToday').textContent = uniqueToday;
+
+            if (todayRecords.length > 0) {
+                const lastTime = new Date(todayRecords[0].time);
+                document.getElementById('statLast').textContent =
+                    lastTime.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+            } else {
+                document.getElementById('statLast').textContent = '--:--';
+            }
+
+            const rate = members.length > 0 ? Math.round((uniqueToday / members.length) * 100) : 0;
+            document.getElementById('statRate').textContent = rate + '%';
+        }
+
+        // ==================== Import/Export ====================
+        function exportData() {
+            const data = {
+                version: APP_VERSION,
+                members: members,
+                records: records,
+                exportTime: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `簽到系統備份_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showToast('資料已匯出', 'success');
+        }
+
+        function showImportModal() {
+            document.getElementById('importData').value = '';
+            document.getElementById('importModal').classList.add('show');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('show');
+        }
+
+        function importData() {
+            const dataStr = document.getElementById('importData').value.trim();
+            if (!dataStr) {
+                showToast('請貼上資料', 'error');
+                return;
+            }
+
+            try {
+                const data = JSON.parse(dataStr);
+                if (data.members && Array.isArray(data.members)) {
+                    members = data.members;
+                }
+                if (data.records && Array.isArray(data.records)) {
+                    records = data.records;
+                }
+
+                renderMembers();
+                renderRecords();
+                updateStats();
+                closeImportModal();
+                showToast('資料已匯入', 'success');
+            } catch (e) {
+                showToast('資料格式錯誤', 'error');
+            }
+        }
+
+        // ==================== Confirm Modal ====================
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+            confirmCallback = null;
+        }
+
+        function executeConfirm() {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            closeConfirmModal();
+        }
+
+        // ==================== Demo Data (Removed - Now using Firebase) ====================
+        // Data is now loaded from Firebase via loadDataFromFirebase()
+
+        // ==================== Utilities ====================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="toast-icon fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ==================== Time Settings ====================
+        function showTimeSettingsModal() {
+            document.getElementById('settingStartTime').value = timeSettings.startTime;
+            document.getElementById('settingEndTime').value = timeSettings.endTime;
+            document.getElementById('settingEnableTimeCheck').checked = timeSettings.enableTimeCheck;
+            document.getElementById('timeSettingsModal').classList.add('show');
+        }
+
+        function closeTimeSettingsModal() {
+            document.getElementById('timeSettingsModal').classList.remove('show');
+        }
+
+        function saveTimeSettings() {
+            timeSettings.startTime = document.getElementById('settingStartTime').value;
+            timeSettings.endTime = document.getElementById('settingEndTime').value;
+            timeSettings.enableTimeCheck = document.getElementById('settingEnableTimeCheck').checked;
+            closeTimeSettingsModal();
+            showToast('時間設定已儲存', 'success');
+        }
+
+        function openPublicPage() {
+            const params = new URLSearchParams();
+            params.set('start', timeSettings.startTime);
+            params.set('end', timeSettings.endTime);
+            params.set('enable', timeSettings.enableTimeCheck ? '1' : '0');
+            window.open('checkin-public.html?' + params.toString(), '_blank');
+        }
+    </script>
+</body>
+</html>
