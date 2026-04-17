@@ -1,0 +1,20 @@
+{
+    "name": "香港仔工業學校科技學會",
+    "short_name": "科技學會",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#181818",
+    "theme_color": "#5D5CDE",
+    "icons": [
+        {
+            "src": "https://pfst.cf2.poecdn.net/base/image/a8386cbad5c2f3b35dea7f6252f031b0f11f66a3299e4367ded2af9dce0ae253?w=192&h=192",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://pfst.cf2.poecdn.net/base/image/a8386cbad5c2f3b35dea7f6252f031b0f11f66a3299e4367ded2af9dce0ae253?w=512&h=512",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
